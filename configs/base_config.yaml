@@ -1,0 +1,34 @@
+# Base configuration for all models
+data:
+  orig_root: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/matched_frames/20220318_021533"
+  mask_root: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/matched_frames/20220318_021533_mask"
+  labels_path: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/matched_frames/matched_labels.csv"
+  out_dir: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/experiments"
+  img_size: 224
+  mask_ratio: 0.9  # 90% masked
+  
+training:
+  batch_size: 8  # Reduced for laptop
+  epochs: 1
+  val_split: 0.10
+  test_split: 0.20
+  seed: 42
+  
+optimization:
+  learning_rate: 1e-4
+  weight_decay: 1e-5
+  warmup_steps: 1000
+  
+memory:
+  enable_mixed_precision: true
+  gradient_accumulation_steps: 2
+  max_memory_gb: 8  # Adjust based on your laptop
+  
+models_to_train:
+  - "vit"
+  - "swin" 
+  - "detr"
+  
+evaluation:
+  save_predictions: true
+  num_visualization_samples: 1
