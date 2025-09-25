@@ -1,0 +1,7 @@
+# ViT-specific configuration
+patch_size: 16
+embed_dim: 384
+num_heads: 6
+num_layers: 12
+mlp_ratio: 4.0
+dropout_rate: 0.1
