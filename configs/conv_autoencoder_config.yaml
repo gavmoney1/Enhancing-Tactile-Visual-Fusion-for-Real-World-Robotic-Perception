@@ -1,0 +1,25 @@
+# Convolutional Autoencoder-specific configuration
+initial_filters: 32
+filter_growth_rate: 2
+num_encoder_blocks: 3
+dropout_rate: 0.1
+
+# Architecture settings
+use_skip_connections: true
+use_batch_norm: true
+activation: "relu"
+final_activation: "sigmoid"
+
+# Encoder settings
+kernel_size: 3
+pool_size: 2
+encoder_dropout: 0.1
+
+# Decoder settings
+decoder_dropout: 0.1
+decoder_kernel_size: 3
+upsampling_type: "transpose"  # can be "transpose" or "upsample"
+
+# Bottleneck settings
+bottleneck_filters: 256
+bottleneck_kernel_size: 3
