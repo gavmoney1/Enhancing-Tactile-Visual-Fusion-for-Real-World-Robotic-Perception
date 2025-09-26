@@ -1,9 +1,8 @@
 # Base configuration for all models
 data:
-  orig_root: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/matched_frames/20220318_021533"
-  mask_root: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/matched_frames/20220318_021533_mask"
-  labels_path: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/matched_frames/matched_labels.csv"
-  out_dir: "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/experiments"
+  orig_root: "/unmasked/images/dir/goes/here"
+  mask_root: "/masked/images/dir/goes/here"
+  out_dir: "/output/dir/goes/here"
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
