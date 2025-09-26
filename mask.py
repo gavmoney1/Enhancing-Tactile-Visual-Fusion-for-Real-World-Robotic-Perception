@@ -5,8 +5,8 @@ import cv2
 import numpy as np  # needed for mask array
 
 # --- Config ---
-input_root = r"C:\Users\gabri\OneDrive\Documents\Fall25\Capstone\Development\matched_frames"
-output_root = r"C:\Users\gabri\OneDrive\Documents\Fall25\Capstone\Development\masked_frames"
+input_root = r"dir matched_frames"
+output_root = r"dir masked_frames"
 img_size = 224
 visible_frac = 0.10  # 10% visible in center
 
