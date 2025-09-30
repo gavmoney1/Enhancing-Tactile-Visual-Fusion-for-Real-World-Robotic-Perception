@@ -61,8 +61,8 @@ def load_images(input_root, output_root, target_size=(224,224)):
 
     return np.array(images)
 
-input_root = r"C:\Users\gabri\OneDrive\Documents\Fall25\Capstone\Development\masked_frames"
-output_root = r"C:\Users\gabri\OneDrive\Documents\Fall25\Capstone\Development\pca_masked_frames"
+input_root = r"Replace with image path"
+output_root = r"Replace with image path"
 
 # load_images(input_root, output_root)
 
