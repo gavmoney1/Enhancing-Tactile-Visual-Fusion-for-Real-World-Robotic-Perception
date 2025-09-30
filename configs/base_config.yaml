@@ -1,9 +1,11 @@
 # Base configuration for all models
 data:
+
   orig_root: "/your/unmasked/images/dir/here"
   mask_root: "/your/masked/images/dir/here"
   labels_path: "/your/labels.csv/here" # TODO: add label support for Sindhu
   out_dir: "/your/output/dir/here"
+
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
