@@ -1,1 +1,2 @@
 TODO: add requirements here
+tensor==2.12.0 #i think

@@ -1,14 +1,17 @@
 # Base configuration for all models
 data:
-  orig_root: "/unmasked/images/dir/goes/here"
-  mask_root: "/masked/images/dir/goes/here"
-  out_dir: "/output/dir/goes/here"
+
+  orig_root: "/your/unmasked/images/dir/here"
+  mask_root: "/your/masked/images/dir/here"
+  labels_path: "/your/labels.csv/here" # TODO: add label support for Sindhu
+  out_dir: "/your/output/dir/here"
+
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
 training:
   batch_size: 8  # Reduced for laptop
-  epochs: 1
+  epochs: 50
   val_split: 0.10
   test_split: 0.20
   seed: 42
@@ -24,10 +27,11 @@ memory:
   max_memory_gb: 8  # Adjust based on your laptop
   
 models_to_train:
+  - "conv_autoencoder"
   - "vit"
   - "swin" 
   - "detr"
   
 evaluation:
   save_predictions: true
-  num_visualization_samples: 1
+  num_visualization_samples: 4

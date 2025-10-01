@@ -24,6 +24,7 @@ from datasets.data_loader import DataLoader
 from models.vit_model import ViTModel
 from models.swin_model import SwinModel
 from models.detr_model import DETRModel
+from models.conv_autoencoder_model import ConvolutionalAutoencoder
 from trainers.trainer import ModelTrainer
 from utils.metrics import MetricsCalculator
 from utils.visualization import Visualizer
@@ -31,7 +32,8 @@ from utils.visualization import Visualizer
 MODEL_REGISTRY = {
     'vit': ViTModel,
     'swin': SwinModel,
-    'detr': DETRModel
+    'detr': DETRModel,
+    'conv_autoencoder': ConvolutionalAutoencoder
 }
 
 class TrainingTestbed:
