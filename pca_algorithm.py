@@ -54,11 +54,6 @@ def load_images(input_root, output_root, target_size=(224,224)):
             cv2.imwrite(output_path, compressed_image)
             print(f"Saved compressed image: {output_path}")
 
-            i += 1
-            if i > 5: 
-                return np.array(images)
-
-
     return np.array(images)
 
 input_root = r"Replace with image path"
