@@ -55,7 +55,7 @@ class DecoderBlock(layers.Layer):
         x = self.dropout(x, training=training)
         return x
 
-class ConvolutionalAutoencoder(BaseTransformerModel):
+class ConvolutionalAutoencoderModel(BaseTransformerModel):
     def __init__(self, config):
         super().__init__(config)
         # Model architecture parameters

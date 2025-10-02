@@ -13,7 +13,7 @@ training:
   batch_size: 8  # Reduced for laptop
   epochs: 50
   val_split: 0.10
-  test_split: 0.20
+  test_split: 0.20 # TODO: these vals currently only affect metric report
   seed: 42
   
 optimization:
@@ -27,6 +27,7 @@ memory:
   max_memory_gb: 8  # Adjust based on your laptop
   
 models_to_train:
+  - "mae_up"
   - "conv_autoencoder"
   - "vit"
   - "swin" 
