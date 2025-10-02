@@ -1,4 +1,3 @@
-import keras
 import tensorflow as tf
 from tensorflow.keras import layers
 from .base_model import BaseTransformerModel

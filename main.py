@@ -130,7 +130,6 @@ class TrainingTestbed:
                     else:
                         model_config[key] = value
     
-        print("Config before trainer init:", model_config)
         trainer = ModelTrainer(model_config, model_name)
         
         # Build model

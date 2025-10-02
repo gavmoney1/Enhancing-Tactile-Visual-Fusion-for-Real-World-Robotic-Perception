@@ -3,7 +3,7 @@ data:
 
   orig_root: "/your/unmasked/images/dir/here"
   mask_root: "/your/masked/images/dir/here"
-  labels_path: "/your/labels.csv/here" # TODO: add label support for Sindhu
+  labels_path: "/your/labels.csv/here" # TODO: add label support, not currently implemented
   out_dir: "/your/output/dir/here"
 
   img_size: 224
