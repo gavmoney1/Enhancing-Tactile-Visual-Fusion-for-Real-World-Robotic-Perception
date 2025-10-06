@@ -5,21 +5,27 @@ A modular framework for training and comparing different transformer architectur
 
 ## Features
 
-- **Multiple Transformer Architectures**: ViT, Swin Transformer, DETR
+- **Multiple Transformer Architectures**: ViT, Swin Transformer, DETR, MAE Up, Conventional Autoencoder
 - **Memory Management**: Optimized for laptop training with memory monitoring
 - **Comprehensive Evaluation**: PSNR, SSIM, MAE, MSE metrics
-- **Visual Comparisons**: Automated generation of prediction visualizations
+- **Visual Comparisons**: Automated generation of prediction visualizations !TODO!
 - **Modular Design**: Easy to add new models and configurations
 
 ## Quick Start
 
 1. **Install Dependencies**
+**Please ensure you are using python 3.10.** 
+We recommend creating a virtual environment, although this is not required.
+Run the following in your root directory
 ```bash
 pip install -r requirements.txt
 ```
 
 2. **Update Configuration**
-Edit `configs/base_config.yaml` with your dataset paths and training parameters.
+Update `configs/base_config.yaml` to include your image paths and desired training parameters.
+
+Masked images must have the same name as their unmasked counterpart.
+To create masked images, see utils/mask.py.
 
 3. **Run Training**
 ```bash
@@ -39,7 +45,7 @@ The `configs/base_config.yaml` contains all training parameters:
 - Dataset paths and preprocessing settings
 - Training hyperparameters
 - Memory management options
-- Model selection
+- Model selection (defaults to all)
 - Evaluation settings
 
 ## Output
@@ -90,14 +96,18 @@ training_testbed/
 │   ├── base_config.yaml    # Main configuration
 │   ├── vit_config.yaml     # ViT-specific settings
 │   ├── swin_config.yaml    # Swin-specific settings
-│   └── detr_config.yaml    # DETR-specific settings
+│   ├── detr_config.yaml    # DETR-specific settings
+│   ├── mae_up_config.yaml  # MAE-UP-specific settings
+│   └── conv_ae_config.yaml # ConvAE-specific settings
 ├── datasets/               # Data loading utilities
 │   └── data_loader.py      # Dataset creation and preprocessing
 ├── models/                 # Model implementations
 │   ├── base_model.py       # Abstract base class
 │   ├── vit_model.py        # Vision Transformer
 │   ├── swin_model.py       # Swin Transformer
-│   └── detr_model.py       # DETR-style model
+│   ├── detr_model.py       # DETR-style model
+│   ├── mae_up_model.py     # Masked Autoencoder with UNet-style decoder
+│   └── conv_ae_model.py    # Convolutional Autoencoder
 ├── trainers/               # Training logic
 │   └── trainer.py          # Model trainer with callbacks
 ├── utils/                  # Utility functions
@@ -106,7 +116,7 @@ training_testbed/
 │   └── memory_utils.py     # Memory management
 ├── main.py                 # Main training script
 ├── requirements.txt        # Python dependencies
-└── README.md              # This file
+└── README.md               # This file
 ```
 
 ## Model Architectures
@@ -126,6 +136,18 @@ training_testbed/
 - Object queries for patch reconstruction
 - Cross-attention between queries and image features
 
+### MAE-UP Model
+- Masked Autoencoder with UNet-style Progressive decoder
+- Self-supervised pretraining with random mask patches
+- Progressive upsampling decoder for detailed reconstruction
+- Skip connections between encoder and decoder stages
+
+### Convolutional Autoencoder
+- Traditional convolutional architecture baseline
+- Encoder: Series of Conv2D + BatchNorm + ReLU blocks
+- Decoder: Transposed convolutions for upsampling
+- Bottleneck representation for compression
+
 ## Metrics
 
 The framework evaluates models using:
@@ -137,7 +159,7 @@ The framework evaluates models using:
 ## Memory Optimization
 
 For laptop training, the framework includes:
-- **Mixed Precision**: FP16 training to reduce memory usage
+- **Mixed Precision**: FP16 training to reduce memory usage !TODO!
 - **Gradient Accumulation**: Simulate larger batch sizes
 - **Memory Monitoring**: Track usage and trigger cleanup
 - **Sequential Training**: Train models one at a time
@@ -155,10 +177,6 @@ For laptop training, the framework includes:
 - Increase `batch_size` if memory allows
 - Reduce `num_layers` or `embed_dim`
 - Use fewer `epochs` for initial testing
-
-### Import Errors
-- Ensure all dependencies are installed: `pip install -r requirements.txt`
-- Check Python version compatibility (3.8+)
 
 ## License
 ???

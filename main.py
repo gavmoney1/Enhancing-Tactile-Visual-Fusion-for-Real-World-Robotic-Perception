@@ -15,6 +15,7 @@ if gpus:
 else:
     print("No GPU found, using CPU")
 import sys
+import copy
 import yaml
 import argparse
 import traceback
@@ -24,6 +25,8 @@ from datasets.data_loader import DataLoader
 from models.vit_model import ViTModel
 from models.swin_model import SwinModel
 from models.detr_model import DETRModel
+from models.conv_autoencoder_model import ConvolutionalAutoencoderModel
+from models.mae_up_model import MAEUpModel
 from trainers.trainer import ModelTrainer
 from utils.metrics import MetricsCalculator
 from utils.visualization import Visualizer
@@ -31,7 +34,9 @@ from utils.visualization import Visualizer
 MODEL_REGISTRY = {
     'vit': ViTModel,
     'swin': SwinModel,
-    'detr': DETRModel
+    'detr': DETRModel,
+    'conv_autoencoder': ConvolutionalAutoencoderModel,
+    'mae_up': MAEUpModel
 }
 
 class TrainingTestbed:
@@ -110,15 +115,21 @@ class TrainingTestbed:
     
     def _train_single_model(self, model_name: str, train_ds, val_ds, test_ds) -> Dict[str, Any]:
         """Train a single model"""
-        model_config = self.config.copy()
+        # Make deep copy of base config
+        model_config = copy.deepcopy(self.config)
         
         # Load model-specific config if it exists
         model_config_path = os.path.join('configs', f'{model_name}_config.yaml')
         if os.path.exists(model_config_path):
             with open(model_config_path, 'r') as f:
                 model_specific = yaml.safe_load(f)
-                model_config.update(model_specific)
-        
+                # Merge configs while preserving base config structure
+                for key, value in model_specific.items():
+                    if key in model_config and isinstance(model_config[key], dict):
+                        model_config[key].update(value)
+                    else:
+                        model_config[key] = value
+    
         trainer = ModelTrainer(model_config, model_name)
         
         # Build model
