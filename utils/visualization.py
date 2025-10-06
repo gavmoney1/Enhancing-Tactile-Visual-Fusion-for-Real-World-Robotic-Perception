@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from typing import List, Dict, Any
 import seaborn as sns
-from PIL import Image
 
 class Visualizer:
     """Handle visualization of results and comparisons"""
@@ -44,18 +43,16 @@ class Visualizer:
             break
     
     def _save_image_batch(self, images, output_dir: str, prefix: str):
+        """Save batch of images as individual files"""
         images = tf.clip_by_value(images, 0.0, 1.0)
         images = tf.image.convert_image_dtype(images, tf.uint8)
-
+        
         num_save = min(self.num_samples, images.shape[0])
-
+        
         for i in range(num_save):
             filename = f"{prefix}_{i:03d}.png"
             filepath = os.path.join(output_dir, filename)
-
-            # Convert tensor to numpy array
-            arr = images[i].numpy()
-            Image.fromarray(arr).save(filepath)
+            tf.io.write_file(filepath, tf.io.encode_png(images[i]))
     
     def _create_comparison_grid(self, masked, predicted, target, output_dir: str, model_name: str):
         """Create a comparison grid showing masked, predicted, and target images"""
@@ -90,7 +87,7 @@ class Visualizer:
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
         fig.suptitle('Training History Comparison', fontsize=16)
         
-        metrics = ['loss', 'psnr', 'ssim']
+        metrics = ['loss', 'psnr_metric', 'ssim_metric']
         metric_titles = ['Loss', 'PSNR', 'SSIM']
         
         for idx, (metric, title) in enumerate(zip(metrics, metric_titles)):

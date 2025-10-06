@@ -83,7 +83,7 @@ class ModelTrainer:
         self.model.compile(
             optimizer=optimizer,
             loss=combined_loss,
-            metrics=[PSNRMetric(name='psnr'), SSIMMetric(name='ssim')]
+            metrics=[PSNRMetric(), SSIMMetric()]
         )
         
         # Print model summary
