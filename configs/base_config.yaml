@@ -1,17 +1,16 @@
 # Base configuration for all models
 data:
 
-  orig_root: "/your/unmasked/images/dir/here"
-  mask_root: "/your/masked/images/dir/here"
+  orig_root: "C:/Users/gabri/OneDrive/Documents/Fall25/Capstone/Development/matched_frames/20220318_021533"
+  mask_root: "C:/Users/gabri/OneDrive/Documents/Fall25/Capstone/Development/pca_masked_frames/20220318_021533"
   labels_path: "/your/labels.csv/here" # TODO: add label support, not currently implemented
-  out_dir: "/your/output/dir/here"
-
+  out_dir: "C:/Users/gabri/OneDrive/Documents/Fall25/Capstone/Development/test_output"
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
 training:
   batch_size: 8  # Reduced for laptop
-  epochs: 50
+  epochs: 1
   val_split: 0.10
   test_split: 0.20 # TODO: these vals currently only affect metric report
   seed: 42
@@ -32,6 +31,7 @@ models_to_train:
   - "vit"
   - "swin" 
   - "detr"
+  - "rad"
   
 evaluation:
   save_predictions: true

@@ -27,6 +27,7 @@ from models.swin_model import SwinModel
 from models.detr_model import DETRModel
 from models.conv_autoencoder_model import ConvolutionalAutoencoderModel
 from models.mae_up_model import MAEUpModel
+from models.rad_model import RADModel
 from trainers.trainer import ModelTrainer
 from utils.metrics import MetricsCalculator
 from utils.visualization import Visualizer
@@ -36,7 +37,8 @@ MODEL_REGISTRY = {
     'swin': SwinModel,
     'detr': DETRModel,
     'conv_autoencoder': ConvolutionalAutoencoderModel,
-    'mae_up': MAEUpModel
+    'mae_up': MAEUpModel,
+    'rad': RADModel
 }
 
 class TrainingTestbed:
