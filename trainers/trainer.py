@@ -6,8 +6,6 @@ from typing import Dict, Any
 from utils.metrics import combined_loss, PSNRMetric, SSIMMetric
 from utils.memory_utils import MemoryManager
 
-import tensorflow as tf
-
 @tf.keras.utils.register_keras_serializable(package="Custom")
 class CombinedSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     """Warmup followed by main schedule using tf.where for safety"""
