@@ -30,7 +30,7 @@ class DataLoader:
         mask.set_shape([self.img_size, self.img_size, 3])
         return mask, orig
     
-    def _extract_video_id(self, fname: str) ->str:
+    def _extract_video_id(self, fname: str) -> str:
         """
         Extract video identifier from filename or subdirectory.
         Handles:
