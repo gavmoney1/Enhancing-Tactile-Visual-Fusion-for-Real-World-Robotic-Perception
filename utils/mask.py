@@ -5,8 +5,8 @@ import numpy as np
 import shutil
 
 # --- Config ---
-input_root = "/your/unmasked/images/dir/here"
-output_root = "/your/masked/images/output/dir/here"
+input_root = r"/your/unmasked/images/dir/here"
+output_root = r"/your/masked/images/output/dir/here"
 img_size = 224
 visible_frac = 0.10  # 10% visible in center
 
