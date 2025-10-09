@@ -54,28 +54,10 @@ def load_images(input_root, output_root, target_size=(224,224)):
             cv2.imwrite(output_path, compressed_image)
             print(f"Saved compressed image: {output_path}")
 
-            # uncomment for pca reduction on a few images and to view reduced images
-            # i += 1
-            # if i > 5: 
-            #     return np.array(images)
-
-    return np.array(images)
+    print("Process complete.")
 
 input_root = r"Replace with dir of images to be compressed"
 output_root = r"Replace with dir to store compressed images"
 
-# load_images(input_root, output_root)
+load_images(input_root, output_root)
 
-# apply PCA to dataset 
-compressed_images = load_images(input_root, output_root)
-print("Compressed dataset shape:", compressed_images.shape)
-
-# view one image
-plt.figure(figsize=(8,4))
-
-plt.title("PCA Compressed (50 PCs)")
-plt.imshow(compressed_images[1], cmap="gray")
-plt.axis("off")
-
-plt.show()
-     
