@@ -12,8 +12,8 @@ class InferenceEngine:
         Initializes engine with a given model and pretrained weights
 
         Args:
-            model_class (object): class of model (ex: MAEUpModel)
-            weights_path (str): Path to trained model (.h5)
+            model_class (object): class of model (ex: MAEUpModel, conv)
+            weights_path (str): Path to trained model (.keras) 
             config (dict): Model configuration (same used during training)
         """
         self.model_class = model_class
@@ -106,6 +106,3 @@ class InferenceEngine:
 
         print(f"Inference completed for {total_images} images.")
         print(f"Predictions saved under: {output_root}")
-        
-
-
