@@ -207,6 +207,64 @@ class Visualizer:
             """
             
             for model, metrics in results['metrics'].items():
+                if model != "detr":
+                    html_content += f"""
+                    <tr>
+                        <td><strong>{model}</strong></td>
+                        <td>{metrics['PSNR']:.4f}</td>
+                        <td>{metrics['SSIM']:.4f}</td>
+                        <td>{metrics['MAE']:.4f}</td>
+                        <td>{metrics['MSE']:.4f}</td>
+                    </tr>
+                    """
+                else:
+                    html_content += f"""
+                    <tr>
+                        <td><strong>{model}</strong></td>
+                        <td><strong>{metrics['PSNR']:.4f}</strong></td>
+                        <td><strong>{metrics['SSIM']:.4f}</strong></td>
+                        <td><strong>{metrics['MAE']:.4f}</strong></td>
+                        <td><strong>{metrics['MSE']:.4f}</strong></td>
+                    </tr>
+                    """
+            
+            html_content += "</table>"
+        
+        # Add training times
+        if 'training_times' in results:
+            html_content += """
+            <h2>Training Times</h2>
+            <table>
+                <tr><th>Model</th><th>Training Time (seconds)</th><th>Training Time (minutes)</th></tr>
+            """
+            
+            for model, time_seconds in results['training_times'].items():
+                time_minutes = time_seconds / 60
+                if model != "detr":
+                    html_content += f"""
+                    <tr>
+                        <td><strong>{model}</strong></td>
+                        <td>{time_seconds:.2f}</td>
+                        <td>{time_minutes:.2f}</td>
+                    </tr>
+                    """
+                else:
+                    html_content += f"""
+                    <tr>
+                        <td><strong>{model}</strong></td>
+                        <td><strong>{time_seconds:.2f}</strong></td>
+                        <td><strong>{time_minutes:.2f}</strong></td>
+                    </tr>
+                    """
+        # Add metrics table
+        if 'metrics' in results:
+            html_content += """
+            <h2>Performance Metrics</h2>
+            <table>
+                <tr><th>Model</th><th>PSNR</th><th>SSIM</th><th>MAE</th><th>MSE</th></tr>
+            """
+            
+            for model, metrics in results['metrics'].items():
                 html_content += f"""
                 <tr>
                     <td><strong>{model}</strong></td>
