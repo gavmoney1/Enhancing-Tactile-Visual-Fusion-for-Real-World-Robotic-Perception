@@ -108,15 +108,31 @@ class ViTModel(BaseTransformerModel):
     def __init__(self, config):
         super().__init__(config)
         self.dropout_rate = config.get('dropout_rate', 0.1)
+        self.pooling_type = config.get('pooling_type', 'max')  # New parameter to determine pooling type
+        self.pooling_size = config.get('pooling_size', 2)      # Pooling size
+
         
     def build_model(self):
         inputs = layers.Input(shape=(self.img_size, self.img_size, 3))
         
+        if self.pooling_type == 'max':
+            x = layers.MaxPooling2D(pool_size=(self.pooling_size, self.pooling_size))(inputs)
+        elif self.pooling_type == 'average':
+            x = layers.AveragePooling2D(pool_size=(self.pooling_size, self.pooling_size))(inputs)
+        else:
+            x = inputs  # No pooling, use the input as is
+
+        # Convert to patches and embed using custom layers
+        patches = PatchExtractor(self.patch_size)(x)
+
         # Convert to patches and embed using custom layers
         patches = PatchExtractor(self.patch_size)(inputs)
         
         # Linear projection
         patch_embed = layers.Dense(self.embed_dim)(patches)
+
+        #patch_embed = layers.MaxPooling1D(pool_size=2)(patch_embed)  # Adjust pool size as needed
+
         num_patches = (self.img_size // self.patch_size) ** 2
         
         # Add positional embeddings layer
@@ -138,7 +154,7 @@ class ViTModel(BaseTransformerModel):
         
         x = PositionalEmbedding(num_patches, self.embed_dim)(patch_embed)
         x = layers.Dropout(self.dropout_rate)(x)
-        
+
         # Transformer blocks
         for i in range(self.num_layers):
             x = TransformerBlock(
@@ -146,12 +162,13 @@ class ViTModel(BaseTransformerModel):
             )(x)
         
         # Output projection to patch size
-        patch_dim = self.patch_size * self.patch_size * 3
+        #patch_dim = self.patch_size * self.patch_size * 3
+        patch_dim = (self.patch_size) * (self.patch_size) * 3  # Adjusted for max pooling
         x = layers.LayerNormalization()(x)
         x = layers.Dense(patch_dim)(x)
         
         # Reshape to image using custom layer
-        outputs = PatchReconstructor(self.patch_size, self.img_size)(x)
+        outputs = PatchReconstructor(self.patch_size, self.img_size)(x)  # Adjust dimensions for reconstruction #PatchReconstructor(self.patch_size, self.img_size)(x)
         outputs = layers.Activation('sigmoid')(outputs)
         
         return tf.keras.Model(inputs, outputs, name="ViT_Reconstruction")

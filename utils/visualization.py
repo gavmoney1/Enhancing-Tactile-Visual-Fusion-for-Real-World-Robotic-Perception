@@ -207,7 +207,7 @@ class Visualizer:
             """
             
             for model, metrics in results['metrics'].items():
-                if model != "detr":
+                if model != "vit":
                     html_content += f"""
                     <tr>
                         <td><strong>{model}</strong></td>
@@ -240,7 +240,7 @@ class Visualizer:
             
             for model, time_seconds in results['training_times'].items():
                 time_minutes = time_seconds / 60
-                if model != "detr":
+                if model != "vit":
                     html_content += f"""
                     <tr>
                         <td><strong>{model}</strong></td>
