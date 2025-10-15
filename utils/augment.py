@@ -5,15 +5,16 @@ import random
 import torch
 
 # Paths
-input_folder = "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/butterflies/butterflies_224"
-output_folder = "/home/gmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/butterflies/butterflies_224_aug"
+input_folder = "/input/images/folder/here"
+output_folder = "/output/images/folder/here"
+num_augmentations_per_image = 3
 os.makedirs(output_folder, exist_ok=True)
 
 # Basic augmentations
 basic_aug = transforms.Compose([
     transforms.RandomHorizontalFlip(p=0.5),
     transforms.RandomVerticalFlip(p=0.5),
-    transforms.RandomResizedCrop(size=(128, 128), scale=(0.8, 1.0)),  # adjust size to your model
+    transforms.RandomResizedCrop(size=(224, 224), scale=(0.8, 1.0)),
 ])
 
 # Color jitter (small changes)
@@ -35,7 +36,6 @@ def add_gaussian_noise(img):
         return transforms.ToPILImage()(tensor)
     return img
 
-# Discrete rotation: 0°, 90°, 180°, 270°
 def discrete_rotation(img):
     angles = [0, 90, 180, 270]
     angle = random.choice(angles)
@@ -56,8 +56,8 @@ for filename in os.listdir(input_folder):
         img_path = os.path.join(input_folder, filename)
         img = Image.open(img_path).convert("RGB")
 
-        for i in range(3):  # number of augmentations per image
+        for i in range(num_augmentations_per_image):
             aug_img = augment_image(img)
             aug_img.save(os.path.join(output_folder, f"{os.path.splitext(filename)[0]}_aug{i}.png"))
 
-print("Augmentation complete!")
+print("Augmentation complete")
