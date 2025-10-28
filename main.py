@@ -135,7 +135,7 @@ class TrainingTestbed:
         # Build model
         model_class = MODEL_REGISTRY[model_name]
         model_builder = model_class(model_config)
-        trainer.build_and_compile_model(model_builder)
+        trainer.build_and_compile_model(model_builder, train_ds)
         
         # Train
         training_result = trainer.train(train_ds, val_ds)

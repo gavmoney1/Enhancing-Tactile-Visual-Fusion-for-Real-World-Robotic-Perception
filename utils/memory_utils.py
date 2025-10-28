@@ -8,7 +8,7 @@ class MemoryManager:
     def __init__(self, config):
         self.max_memory_gb = config['memory']['max_memory_gb']
         self.enable_mixed_precision = config['memory']['enable_mixed_precision']
-        self.gradient_accumulation_steps = config['memory']['gradient_accumulation_steps']
+        self.gradient_accumulation_steps = config['memory']['gradient_accumulation_steps'] # UNUSED
         
         # Enable mixed precision if requested - disable for now due to compatibility issues
         # if self.enable_mixed_precision:

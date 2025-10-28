@@ -62,14 +62,14 @@ class ModelTrainer:
         self.model = None
         self.history = None
         
-    def build_and_compile_model(self, model_builder):
+    def build_and_compile_model(self, model_builder, train_ds):
         """Build and compile the model"""
         print(f"\nBuilding {self.model_name} model...")
         
         self.model = model_builder.build_model()
         
         # Create learning rate schedule with warmup
-        lr_schedule = self._create_lr_schedule()
+        lr_schedule = self._create_lr_schedule(train_ds)
         
         # Configure optimizer
         optimizer = AdamW(
@@ -97,7 +97,7 @@ class ModelTrainer:
         
         return self.model
     
-    def _create_lr_schedule(self):
+    def _create_lr_schedule(self, train_ds):
         """Create learning rate schedule with warmup"""
         warmup_schedule = tf.keras.optimizers.schedules.PolynomialDecay(
             initial_learning_rate=0.0,
@@ -107,7 +107,7 @@ class ModelTrainer:
         )
 
         # approximate steps = epochs × steps_per_epoch
-        steps_per_epoch = 1000  # TODO: investigate steps_per_epoch = len(train_ds)
+        steps_per_epoch = len(train_ds)
         main_schedule = tf.keras.optimizers.schedules.CosineDecay(
             initial_learning_rate=self.learning_rate,
             decay_steps=int(self.epochs * steps_per_epoch),
