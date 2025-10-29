@@ -208,7 +208,7 @@ def combined_loss(y_true, y_pred,
     # 2. SSIM Loss (structural similarity)
     ssim_loss = tf.reduce_mean(1.0 - tf.image.ssim(y_true, y_pred, max_val=1.0))
     
-    # 3. Perceptual Loss (feature-level similarity - CRITICAL for inpainting!)
+    # 3. Perceptual Loss (feature-level similarity)
     perceptual = get_perceptual_loss()(y_true, y_pred)
     
     # 4. Style Loss (texture consistency)

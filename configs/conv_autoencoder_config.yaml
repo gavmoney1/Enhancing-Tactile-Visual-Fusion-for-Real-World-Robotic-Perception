@@ -1,7 +1,7 @@
 # Convolutional Autoencoder-specific configuration
-initial_filters: 32
+initial_filters: 64 # was 32
 filter_growth_rate: 2
-num_encoder_blocks: 3
+num_encoder_blocks: 4 # was 3
 dropout_rate: 0.1
 
 # Architecture settings
@@ -21,5 +21,5 @@ decoder_kernel_size: 3
 upsampling_type: "transpose"  # can be "transpose" or "upsample"
 
 # Bottleneck settings
-bottleneck_filters: 256
+bottleneck_filters: 512 # was 256
 bottleneck_kernel_size: 3
