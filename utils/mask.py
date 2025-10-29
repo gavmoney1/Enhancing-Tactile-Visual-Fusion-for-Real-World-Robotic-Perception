@@ -50,5 +50,15 @@ for root, dirs, files in os.walk(input_root, topdown=False):
         masked = mask_image_center(img, visible_frac, img_size)
         cv2.imwrite(out_path, masked)
         print(f"Saved masked image: {out_path}")
+        # --- Move original to top-level input directory ---
+        new_in_path = os.path.join(input_root, new_name)
+        if in_path != new_in_path:
+            shutil.move(in_path, new_in_path)
+            print(f"Moved original image to: {new_in_path}")
+
+    # Delete empty subfolders
+    if root != input_root and not os.listdir(root):
+        os.rmdir(root)
+        print(f"Deleted empty folder: {root}")
 
 print("Processing complete.")
