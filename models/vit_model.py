@@ -176,7 +176,6 @@ class ViTModel(BaseTransformerModel):
         
         # Reshape from (batch, num_patches, embed_dim) to (batch, h, w, embed_dim)
         x = layers.Reshape((h, w, self.embed_dim))(x)
-        print(f"After reshape to spatial: shape = (batch, {h}, {w}, {self.embed_dim})")
         
         # Decoder
         # Initial conv to adjust channels
@@ -195,7 +194,5 @@ class ViTModel(BaseTransformerModel):
         
         # Output layer
         outputs = layers.Conv2D(3, 1, padding='same', activation='sigmoid')(x)
-        
-        print(f"Final output shape: (batch, {self.img_size}, {self.img_size}, 3)")
         
         return tf.keras.Model(inputs, outputs, name="ViT_Reconstruction")
