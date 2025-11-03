@@ -122,3 +122,40 @@ class ConvolutionalAutoencoderModel(BaseTransformerModel):
         print(f"Upsampling type: {self.upsampling_type}")
         
         return model
+    
+    def build_classifier(self, input_shape, num_classes):
+        """Build convolutional classifier model (encoder only)"""
+        inputs = tf.keras.Input(shape=input_shape)
+        
+        x = inputs
+        
+        # Encoder layers (same as autoencoder encoder)
+        filters = self.initial_filters
+        for i in range(self.num_encoder_blocks):
+            x = layers.Conv2D(
+                filters,
+                self.kernel_size,
+                strides=2,
+                padding='same',
+                name=f'conv_{i+1}'
+            )(x)
+            
+            if self.use_batch_norm:
+                x = layers.BatchNormalization(name=f'bn_{i+1}')(x)
+            
+            x = layers.ReLU(name=f'relu_{i+1}')(x)
+            
+            if self.dropout_rate > 0:
+                x = layers.Dropout(self.dropout_rate, name=f'dropout_{i+1}')(x)
+            
+        # Global pooling
+        x = layers.GlobalAveragePooling2D(name='global_pool')(x)
+        
+        # Dense layers for classification
+        x = layers.Dense(self.bottleneck_filters, activation='relu', name='fc1')(x)
+        x = layers.Dropout(0.3, name='fc_dropout')(x)
+        
+        outputs = layers.Dense(num_classes, activation='softmax', name='classifier')(x)
+        
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name='conv_classifier')
+        return model

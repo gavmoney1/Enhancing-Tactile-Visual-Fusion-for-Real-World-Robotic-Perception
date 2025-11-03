@@ -271,3 +271,57 @@ class Visualizer:
             f.write(html_content)
         
         print(f"Summary report saved to: {save_path}")
+    
+    def save_classification_predictions(self, model, test_ds, model_name: str, num_samples: int = None):
+        """Save sample classification predictions"""
+        if num_samples is None:
+            num_samples = self.config['evaluation'].get('num_visualization_samples', 10)
+        
+        output_dir = os.path.join(self.config['data']['out_dir'], 'predictions', model_name)
+        os.makedirs(output_dir, exist_ok=True)
+        
+        class_names = self.config.get('classification', {}).get('class_names', None)
+        
+        sample_count = 0
+        for batch_images, batch_labels in test_ds:
+            if sample_count >= num_samples:
+                break
+                
+            predictions = model.predict(batch_images, verbose=0)
+            
+            batch_size = min(len(batch_images), num_samples - sample_count)
+            for i in range(batch_size):
+                fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+                
+                # Show image
+                ax.imshow(batch_images[i].numpy())
+                ax.axis('off')
+                
+                # Add prediction info
+                if len(batch_labels.shape) > 1 and batch_labels.shape[-1] > 1:
+                    true_label = int(tf.argmax(batch_labels[i]).numpy())
+                else:
+                    true_label = int(batch_labels[i].numpy())
+                
+                pred_label = int(tf.argmax(predictions[i]).numpy())
+                pred_conf = float(tf.reduce_max(predictions[i]).numpy())
+                
+                # Use class names if available
+                if class_names:
+                    true_name = class_names[true_label]
+                    pred_name = class_names[pred_label]
+                    title = f"True: {true_name} | Pred: {pred_name}\nConfidence: {pred_conf:.3f}"
+                else:
+                    title = f"True: {true_label} | Pred: {pred_label}\nConfidence: {pred_conf:.3f}"
+                
+                # Color code by correctness
+                color = 'green' if true_label == pred_label else 'red'
+                ax.set_title(title, fontsize=12, color=color, weight='bold')
+                
+                plt.tight_layout()
+                plt.savefig(os.path.join(output_dir, f'sample_{sample_count}.png'), dpi=150, bbox_inches='tight')
+                plt.close()
+                
+                sample_count += 1
+        
+        print(f"Saved {sample_count} classification prediction samples to {output_dir}")

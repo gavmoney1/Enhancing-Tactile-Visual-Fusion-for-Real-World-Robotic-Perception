@@ -1,7 +1,21 @@
 # DETR-specific configuration
+model:
+  num_encoder_layers: 6
+  num_decoder_layers: 6
+  d_model: 256
+  num_heads: 8
+  dim_feedforward: 2048
+  dropout: 0.1
+  num_queries: 100
 patch_size: 16
 embed_dim: 256
 num_heads: 8
 num_layers: 6
 mlp_ratio: 4.0
 num_queries: 196  # 14x14 patches for 224x224 image
+
+# Classification-specific settings
+classification:
+  dropout_rate: 0.3
+  classifier_hidden_dim: 512
+  use_cnn_backbone: true

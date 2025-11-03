@@ -1,11 +1,13 @@
 # Base configuration for all models
-data:
 
+# Task: 'reconstruction' or 'classification'
+task: 'classification'
+
+data:
   orig_root: "/your/unmasked/images/dir/here"
   mask_root: "/your/masked/images/dir/here"
-  labels_path: "/your/labels.csv/here" # TODO: add label support, not currently implemented
+  labels_path: "/your/labels.txt/here"
   out_dir: "/your/output/dir/here"
-
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
@@ -16,13 +18,18 @@ training:
   test_split: 0.20 # TODO: these vals currently only affect metric report
   seed: 42
   
+  early_stopping:
+    enabled: true
+    patience: 10
+    monitor: 'val_loss'  # Use 'val_accuracy' for classification
+  
 optimization:
-  learning_rate: 1e-4
-  weight_decay: 1e-5
+  learning_rate: 0.0001
+  weight_decay: 0.00001
   warmup_steps: 1000
   
 memory:
-  enable_mixed_precision: true
+  enable_mixed_precision: false
   gradient_accumulation_steps: 2
   max_memory_gb: 8  # Adjust based on your laptop
   
@@ -36,3 +43,9 @@ models_to_train:
 evaluation:
   save_predictions: true
   num_visualization_samples: 4
+
+# Classification specific settings (only used when task='classification')
+classification:
+  num_classes: null  # Auto-detected from labels
+  class_weights: null  # Set to 'auto' for imbalanced datasets
+  label_smoothing: 0.1  # Label smoothing factor

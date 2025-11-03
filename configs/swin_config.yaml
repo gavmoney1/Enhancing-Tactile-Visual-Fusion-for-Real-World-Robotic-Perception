@@ -1,7 +1,15 @@
-# Swin Transformer-specific configuration  
-patch_size: 4
-embed_dim: 96
-num_heads: 3
-window_size: 7
-depths: [2, 2, 6, 2]
-mlp_ratio: 4.0
+# Swin Transformer specific configuration
+
+model:
+  patch_size: 4
+  window_size: 7
+  embed_dim: 96
+  depths: [2, 2, 6, 2]
+  num_heads: [3, 6, 12, 24]
+  mlp_ratio: 4.0
+  dropout: 0.1
+
+# Classification-specific settings
+classification:
+  dropout_rate: 0.2
+  use_patch_merging: true

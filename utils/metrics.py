@@ -1,4 +1,6 @@
 import tensorflow as tf
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score
+import numpy as np
 
 
 class PSNRMetric(tf.keras.metrics.Metric):
@@ -124,3 +126,36 @@ class MetricsCalculator:
             comparison += f"{metric}: {best_model} ({best_value:.4f})\n"
 
         return comparison
+
+    def calculate_classification_metrics(self, y_true, y_pred, model_name: str):
+        """Calculate classification metrics"""
+        # Convert predictions to class labels
+        if len(y_pred.shape) > 1 and y_pred.shape[-1] > 1:
+            y_pred_classes = tf.argmax(y_pred, axis=-1).numpy()
+        else:
+            y_pred_classes = y_pred.numpy()
+        
+        if len(y_true.shape) > 1 and y_true.shape[-1] > 1:
+            y_true_classes = tf.argmax(y_true, axis=-1).numpy()
+        else:
+            y_true_classes = y_true.numpy()
+        
+        # Calculate metrics
+        accuracy = accuracy_score(y_true_classes, y_pred_classes)
+        f1 = f1_score(y_true_classes, y_pred_classes, average='weighted', zero_division=0)
+        
+        # Confusion matrix
+        conf_matrix = confusion_matrix(y_true_classes, y_pred_classes)
+        
+        # Classification report
+        class_report = classification_report(y_true_classes, y_pred_classes, output_dict=True, zero_division=0)
+        
+        metrics = {
+            'accuracy': float(accuracy),
+            'f1_score': float(f1),
+            'confusion_matrix': conf_matrix.tolist(),
+            'classification_report': class_report
+        }
+        
+        self.metrics[model_name] = metrics
+        return metrics

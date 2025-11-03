@@ -172,3 +172,56 @@ class ViTModel(BaseTransformerModel):
         outputs = layers.Activation('sigmoid')(outputs)
         
         return tf.keras.Model(inputs, outputs, name="ViT_Reconstruction")
+    
+    def build_classifier(self, input_shape, num_classes):
+        """Build ViT classifier model"""
+        inputs = layers.Input(shape=input_shape)
+        
+        # Patch embedding
+        patches = self.create_patches(inputs)
+        encoded_patches = layers.Dense(self.embed_dim)(patches)
+        
+        # Add positional embedding
+        num_patches = (self.img_size // self.patch_size) ** 2
+        positions = tf.range(start=0, limit=num_patches, delta=1)
+        pos_embedding = layers.Embedding(
+            input_dim=num_patches,
+            output_dim=self.embed_dim
+        )(positions)
+        encoded_patches = encoded_patches + pos_embedding
+        
+        # Transformer blocks
+        for _ in range(self.num_layers):
+            # Layer norm 1
+            x1 = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+            
+            # Multi-head attention
+            attention_output = layers.MultiHeadAttention(
+                num_heads=self.num_heads,
+                key_dim=self.embed_dim // self.num_heads,
+                dropout=0.1
+            )(x1, x1)
+            
+            # Skip connection 1
+            x2 = layers.Add()([attention_output, encoded_patches])
+            
+            # Layer norm 2
+            x3 = layers.LayerNormalization(epsilon=1e-6)(x2)
+            
+            # MLP
+            x3 = layers.Dense(self.embed_dim * 2, activation='gelu')(x3)
+            x3 = layers.Dropout(0.1)(x3)
+            x3 = layers.Dense(self.embed_dim)(x3)
+            x3 = layers.Dropout(0.1)(x3)
+            
+            # Skip connection 2
+            encoded_patches = layers.Add()([x3, x2])
+        
+        # Classification head
+        representation = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+        representation = layers.GlobalAveragePooling1D()(representation)
+        representation = layers.Dropout(0.2)(representation)
+        outputs = layers.Dense(num_classes, activation='softmax')(representation)
+        
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name=f'vit_classifier')
+        return model

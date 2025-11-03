@@ -1,7 +1,18 @@
+# Vision Transformer specific configuration
+
+model:
+  patch_size: 16
+  num_layers: 12
+  num_heads: 12
+  projection_dim: 768
+  mlp_dim: 3072
+  dropout: 0.1
+
 # ViT-specific configuration
-patch_size: 16
 embed_dim: 384
-num_heads: 6
-num_layers: 12
 mlp_ratio: 4.0
-dropout_rate: 0.1
+
+# Classification-specific settings
+classification:
+  dropout_rate: 0.2
+  head_hidden_dim: 512  # Optional hidden layer in classification head

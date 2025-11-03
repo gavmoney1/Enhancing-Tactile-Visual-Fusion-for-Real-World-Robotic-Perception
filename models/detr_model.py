@@ -138,3 +138,57 @@ class DETRModel(BaseTransformerModel):
         queries = queries + ff(queries_norm)
         
         return queries
+    
+    def build_classifier(self, input_shape, num_classes):
+        """Build DETR-based classifier model"""
+        inputs = tf.keras.Input(shape=input_shape)
+        
+        # CNN backbone for feature extraction
+        x = layers.Conv2D(64, 3, padding='same', activation='relu')(inputs)
+        x = layers.MaxPooling2D(2)(x)
+        x = layers.Conv2D(128, 3, padding='same', activation='relu')(x)
+        x = layers.MaxPooling2D(2)(x)
+        x = layers.Conv2D(self.embed_dim, 3, padding='same', activation='relu')(x)
+        x = layers.MaxPooling2D(2)(x)
+        
+        # Reshape for transformer
+        batch_size = tf.shape(x)[0]
+        h, w = x.shape[1], x.shape[2]
+        x = tf.reshape(x, [batch_size, h * w, self.embed_dim])
+        
+        # Add positional encoding
+        num_patches = h * w
+        pos_encoding = layers.Embedding(
+            input_dim=num_patches,
+            output_dim=self.embed_dim
+        )(tf.range(num_patches))
+        x = x + pos_encoding
+        
+        # Transformer encoder
+        for _ in range(self.num_layers):
+            # Multi-head attention
+            x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
+            attn = layers.MultiHeadAttention(
+                num_heads=self.num_heads,
+                key_dim=self.embed_dim // self.num_heads,
+                dropout=0.1
+            )(x_norm, x_norm)
+            x = x + attn
+            
+            # Feed-forward network
+            x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
+            ffn_dim = int(self.embed_dim * self.mlp_ratio)
+            ffn = layers.Dense(ffn_dim, activation='relu')(x_norm)
+            ffn = layers.Dropout(0.1)(ffn)
+            ffn = layers.Dense(self.embed_dim)(ffn)
+            ffn = layers.Dropout(0.1)(ffn)
+            x = x + ffn
+        
+        # Classification head
+        x = layers.LayerNormalization(epsilon=1e-6)(x)
+        x = layers.GlobalAveragePooling1D()(x)
+        x = layers.Dropout(0.2)(x)
+        outputs = layers.Dense(num_classes, activation='softmax')(x)
+        
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name='detr_classifier')
+        return model

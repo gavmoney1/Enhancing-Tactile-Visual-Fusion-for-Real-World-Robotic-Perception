@@ -142,7 +142,12 @@ class SwinModel(BaseTransformerModel):
     def __init__(self, config):
         super().__init__(config)
         self.window_size = config.get('window_size', 7)
-        self.depths = config.get('depths', [2, 2, 6, 2])
+        depths_config = config.get('depths', [2, 2, 6, 2])
+        # Ensure depths is a list
+        if isinstance(depths_config, int):
+            self.depths = [depths_config] * 4  # Default to 4 stages
+        else:
+            self.depths = depths_config
         
     def build_model(self):
         inputs = layers.Input(shape=(self.img_size, self.img_size, 3))
@@ -170,3 +175,75 @@ class SwinModel(BaseTransformerModel):
         outputs = layers.Conv2D(3, kernel_size=1, activation='sigmoid')(x)
         
         return tf.keras.Model(inputs, outputs, name="Swin_Reconstruction")
+    
+    def build_classifier(self, input_shape, num_classes):
+        """Build Swin Transformer classifier model"""
+        inputs = tf.keras.Input(shape=input_shape)
+        
+        # Patch partition (initial embedding)
+        x = layers.Conv2D(
+            filters=self.embed_dim,
+            kernel_size=self.patch_size,
+            strides=self.patch_size,
+            padding='same',
+            name='patch_embed'
+        )(inputs)
+        
+        # Flatten spatial dimensions
+        batch_size = tf.shape(x)[0]
+        h = self.img_size // self.patch_size
+        w = self.img_size // self.patch_size
+        x = tf.reshape(x, [batch_size, h * w, self.embed_dim])
+        
+        # Add positional embedding
+        num_patches = (self.img_size // self.patch_size) ** 2
+        pos_embedding = layers.Embedding(
+            input_dim=num_patches,
+            output_dim=self.embed_dim
+        )(tf.range(num_patches))
+        x = x + pos_embedding
+        
+        # Swin Transformer blocks (simplified version)
+        # Ensure num_heads is a list matching depths
+        if isinstance(self.num_heads, int):
+            num_heads_list = [self.num_heads] * len(self.depths)
+        else:
+            num_heads_list = self.num_heads
+            
+        for i, (depth, num_heads) in enumerate(zip(self.depths, num_heads_list)):
+            dim = self.embed_dim * (2 ** i)
+            
+            # Projection to higher dimension if needed
+            if i > 0:
+                x = layers.Dense(dim)(x)
+            
+            for _ in range(depth):
+                # Layer norm
+                x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
+                
+                # Self-attention
+                attn = layers.MultiHeadAttention(
+                    num_heads=num_heads,
+                    key_dim=dim // num_heads,
+                    dropout=0.1
+                )(x_norm, x_norm)
+                
+                x = x + attn
+                
+                # MLP
+                x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
+                mlp = layers.Dense(int(dim * self.mlp_ratio), activation='gelu')(x_norm)
+                mlp = layers.Dropout(0.1)(mlp)
+                mlp = layers.Dense(dim)(mlp)
+                mlp = layers.Dropout(0.1)(mlp)
+                
+                x = x + mlp
+        
+        # Classification head
+        x = layers.LayerNormalization(epsilon=1e-6)(x)
+        x = layers.GlobalAveragePooling1D()(x)
+        x = layers.Dropout(0.2)(x)
+        outputs = layers.Dense(num_classes, activation='softmax')(x)
+        
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name='swin_classifier')
+        return model

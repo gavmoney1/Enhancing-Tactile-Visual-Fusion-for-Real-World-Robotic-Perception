@@ -28,6 +28,7 @@ from models.detr_model import DETRModel
 from models.conv_autoencoder_model import ConvolutionalAutoencoderModel
 from models.mae_up_model import MAEUpModel
 from trainers.trainer import ModelTrainer
+from trainers.classification_trainer import ClassificationTrainer
 from utils.metrics import MetricsCalculator
 from utils.visualization import Visualizer
 
@@ -44,6 +45,7 @@ class TrainingTestbed:
     
     def __init__(self, config_path: str):
         self.config = self._load_config(config_path)
+        self._validate_config()
         self.results = {
             'metrics': {},
             'training_times': {},
@@ -54,7 +56,7 @@ class TrainingTestbed:
         self.metrics_calculator = MetricsCalculator()
         self.visualizer = Visualizer(self.config)
         os.makedirs(self.config['data']['out_dir'], exist_ok=True)
-        
+    
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """Load configuration from YAML file"""
         if not os.path.exists(config_path):
@@ -65,6 +67,24 @@ class TrainingTestbed:
         
         print(f"Loaded configuration from: {config_path}")
         return config
+    
+    def _validate_config(self):
+        """Validate configuration based on task"""
+        task = self.config.get('task', 'reconstruction')
+        
+        if task == 'reconstruction':
+            required_paths = ['orig_root', 'mask_root']
+            for path_key in required_paths:
+                if path_key not in self.config['data']:
+                    raise ValueError(f"Missing required data path for reconstruction: {path_key}")
+        
+        elif task == 'classification':
+            required_paths = ['orig_root', 'labels_path']
+            for path_key in required_paths:
+                if path_key not in self.config['data']:
+                    raise ValueError(f"Missing required data path for classification: {path_key}")
+        
+        print(f"Configuration validated for task: {task}")
     
     def run_experiment(self) -> Dict[str, Any]:
         """Run the complete training experiment"""
@@ -129,8 +149,15 @@ class TrainingTestbed:
                         model_config[key].update(value)
                     else:
                         model_config[key] = value
-    
-        trainer = ModelTrainer(model_config, model_name)
+        
+        # Select trainer based on task
+        task = self.config.get('task', 'reconstruction')
+        if task == 'classification':
+            trainer = ClassificationTrainer(model_config, model_name)
+        elif task == 'reconstruction':
+            trainer = ModelTrainer(model_config, model_name)
+        else:
+            raise ValueError(f"Invalid task set in base_config.yaml")
         
         # Build model
         model_class = MODEL_REGISTRY[model_name]
@@ -145,11 +172,17 @@ class TrainingTestbed:
         
         # Generate metrics
         print(f"Calculating detailed metrics for {model_name}...")
-        self._calculate_detailed_metrics(trainer.model, test_ds, model_name)
+        if task == 'classification':
+            self._calculate_classification_metrics(trainer.model, test_ds, model_name)
+        else:
+            self._calculate_detailed_metrics(trainer.model, test_ds, model_name)
         
         # Generate visualizations
         if self.config['evaluation']['save_predictions']:
-            self.visualizer.save_sample_predictions(trainer.model, test_ds, model_name)
+            if task == 'classification':
+                self.visualizer.save_classification_predictions(trainer.model, test_ds, model_name)
+            else:
+                self.visualizer.save_sample_predictions(trainer.model, test_ds, model_name)
         
         # Store results
         self.results['training_times'][model_name] = training_result['training_time']
@@ -183,6 +216,30 @@ class TrainingTestbed:
         self.results['metrics'][model_name] = metrics
         
         print(f"{model_name} metrics: {metrics}")
+    
+    def _calculate_classification_metrics(self, model, test_ds, model_name: str):
+        """Calculate classification metrics on test set"""
+        all_true_labels = []
+        all_predictions = []
+        
+        # Collect predictions
+        for batch_images, batch_labels in test_ds:
+            pred_batch = model.predict(batch_images, verbose=0)
+            
+            all_true_labels.append(batch_labels)
+            all_predictions.append(pred_batch)
+        
+        # Concatenate all batches
+        y_true = tf.concat(all_true_labels, axis=0)
+        y_pred = tf.concat(all_predictions, axis=0)
+        
+        # Calculate metrics
+        metrics = self.metrics_calculator.calculate_classification_metrics(y_true, y_pred, model_name)
+        self.results['metrics'][model_name] = metrics
+        
+        print(f"{model_name} classification metrics:")
+        print(f"  Accuracy: {metrics['accuracy']:.4f}")
+        print(f"  F1 Score: {metrics['f1_score']:.4f}")
     
     def _generate_final_results(self, trained_models: Dict):
         """Generate final results, comparisons, and visualizations"""
@@ -231,6 +288,12 @@ def main():
         nargs='+',
         help='Specific models to train (overrides config file)'
     )
+    parser.add_argument(
+        '--task',
+        type=str,
+        choices=['reconstruction', 'classification'],
+        help='Task to perform (overrides config file)'
+    )
     
     args = parser.parse_args()
     
@@ -241,6 +304,11 @@ def main():
     if args.models:
         testbed.config['models_to_train'] = args.models
         print(f"Overriding models to train: {args.models}")
+    
+    # Override task if specified
+    if args.task:
+        testbed.config['task'] = args.task
+        print(f"Overriding task: {args.task}")
     
     # Run experiment
     results = testbed.run_experiment()

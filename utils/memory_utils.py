@@ -10,11 +10,9 @@ class MemoryManager:
         self.enable_mixed_precision = config['memory']['enable_mixed_precision']
         self.gradient_accumulation_steps = config['memory']['gradient_accumulation_steps'] # UNUSED
         
-        # Enable mixed precision if requested - disable for now due to compatibility issues
-        # if self.enable_mixed_precision:
-        #     tf.keras.mixed_precision.set_global_policy('mixed_float16')
-        #     print("Mixed precision training enabled")
-        print("Mixed precision disabled for debugging")
+        if self.enable_mixed_precision:
+            tf.keras.mixed_precision.set_global_policy('mixed_float16')
+            print("Mixed precision training enabled")
     
     def check_memory_usage(self):
         """Check current memory usage"""
