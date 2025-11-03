@@ -97,26 +97,29 @@ class MetricsCalculator:
 
         # Create comparison table
         models = list(self.metrics.keys())
-        metrics_names = list(self.metrics[models[0]].keys())
+        
+        # Filter only numeric metrics for comparison
+        all_metric_names = list(self.metrics[models[0]].keys())
+        numeric_metrics = [m for m in all_metric_names if isinstance(self.metrics[models[0]][m], (int, float))]
 
         # Header
         comparison += f"{'Model':<15}"
-        for metric in metrics_names:
+        for metric in numeric_metrics:
             comparison += f"{metric:<12}"
         comparison += "\n" + "-"*60 + "\n"
 
         # Data rows
         for model in models:
             comparison += f"{model:<15}"
-            for metric in metrics_names:
+            for metric in numeric_metrics:
                 value = self.metrics[model][metric]
                 comparison += f"{value:<12.4f}"
             comparison += "\n"
 
         # Best performing model for each metric
         comparison += "\n" + "Best Performance:\n" + "-"*30 + "\n"
-        for metric in metrics_names:
-            if metric in ["PSNR", "SSIM"]:  # Higher is better
+        for metric in numeric_metrics:
+            if metric in ["PSNR", "SSIM", "accuracy", "f1_score"]:  # Higher is better
                 best_model = max(models, key=lambda x: self.metrics[x][metric])
                 best_value = self.metrics[best_model][metric]
             else:  # Lower is better for MAE, MSE
