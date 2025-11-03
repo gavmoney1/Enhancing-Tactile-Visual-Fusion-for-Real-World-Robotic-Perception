@@ -297,7 +297,7 @@ class Visualizer:
                 ax.imshow(batch_images[i].numpy())
                 ax.axis('off')
                 
-                # Add prediction info
+                # Get true and predicted labels
                 if len(batch_labels.shape) > 1 and batch_labels.shape[-1] > 1:
                     true_label = int(tf.argmax(batch_labels[i]).numpy())
                 else:
@@ -310,13 +310,25 @@ class Visualizer:
                 if class_names:
                     true_name = class_names[true_label]
                     pred_name = class_names[pred_label]
-                    title = f"True: {true_name} | Pred: {pred_name}\nConfidence: {pred_conf:.3f}"
                 else:
-                    title = f"True: {true_label} | Pred: {pred_label}\nConfidence: {pred_conf:.3f}"
+                    true_name = f"Class {true_label}"
+                    pred_name = f"Class {pred_label}"
                 
                 # Color code by correctness
-                color = 'green' if true_label == pred_label else 'red'
-                ax.set_title(title, fontsize=12, color=color, weight='bold')
+                is_correct = true_label == pred_label
+                text_color = 'green' if is_correct else 'red'
+                
+                # Create overlay text
+                overlay_text = f"Predicted: {pred_name}\nActual: {true_name}\nConfidence: {pred_conf:.3f}"
+                
+                # Add text overlay with semi-transparent background
+                ax.text(0.02, 0.98, overlay_text, 
+                       transform=ax.transAxes,
+                       fontsize=12,
+                       verticalalignment='top',
+                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+                       color=text_color,
+                       weight='bold')
                 
                 plt.tight_layout()
                 plt.savefig(os.path.join(output_dir, f'sample_{sample_count}.png'), dpi=150, bbox_inches='tight')
