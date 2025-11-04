@@ -126,15 +126,40 @@ class Visualizer:
     def create_metrics_comparison_plot(self, metrics: Dict[str, Dict], save_path: str):
         """Create bar plot comparing metrics across models"""
         models = list(metrics.keys())
-        metric_names = list(metrics[models[0]].keys())
         
-        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        # Filter out non-scalar metrics (confusion_matrix, classification_report, etc.)
+        all_metric_names = list(metrics[models[0]].keys())
+        scalar_metrics = []
+        for metric_name in all_metric_names:
+            # Check if the metric is a scalar (int or float)
+            sample_value = metrics[models[0]][metric_name]
+            if isinstance(sample_value, (int, float)):
+                scalar_metrics.append(metric_name)
+        
+        if not scalar_metrics:
+            print("No scalar metrics found to plot.")
+            return
+        
+        # Determine subplot layout based on number of metrics
+        num_metrics = len(scalar_metrics)
+        if num_metrics == 1:
+            fig, axes = plt.subplots(1, 1, figsize=(8, 6))
+            axes = [axes]
+        elif num_metrics == 2:
+            fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+            axes = axes.flatten()
+        elif num_metrics <= 4:
+            fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+            axes = axes.flatten()
+        else:
+            nrows = (num_metrics + 1) // 2
+            fig, axes = plt.subplots(nrows, 2, figsize=(15, 5 * nrows))
+            axes = axes.flatten()
+        
         fig.suptitle('Model Performance Comparison', fontsize=16)
         
-        for idx, metric in enumerate(metric_names):
-            row = idx // 2
-            col = idx % 2
-            ax = axes[row, col]
+        for idx, metric in enumerate(scalar_metrics):
+            ax = axes[idx]
             
             values = [metrics[model][metric] for model in models]
             bars = ax.bar(models, values, alpha=0.8)
@@ -145,20 +170,25 @@ class Visualizer:
                 ax.text(bar.get_x() + bar.get_width()/2., height,
                        f'{value:.4f}', ha='center', va='bottom', fontweight='bold')
             
-            ax.set_title(metric, fontsize=14)
-            ax.set_ylabel(metric)
+            ax.set_title(metric.replace('_', ' ').title(), fontsize=14)
+            ax.set_ylabel(metric.replace('_', ' ').title())
             ax.tick_params(axis='x', rotation=45)
             ax.grid(True, alpha=0.3, axis='y')
             
             # Highlight best performing model
-            if metric in ['PSNR', 'SSIM']:  # Higher is better
+            # Higher is better for these metrics
+            if metric.lower() in ['psnr', 'ssim', 'accuracy', 'f1_score', 'precision', 'recall']:
                 best_idx = values.index(max(values))
-            else:  # Lower is better for MAE, MSE
+            else:  # Lower is better for MAE, MSE, loss, etc.
                 best_idx = values.index(min(values))
             
             bars[best_idx].set_color('gold')
             bars[best_idx].set_edgecolor('black')
             bars[best_idx].set_linewidth(2)
+        
+        # Hide unused subplots
+        for idx in range(num_metrics, len(axes)):
+            axes[idx].axis('off')
         
         plt.tight_layout()
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
@@ -199,39 +229,64 @@ class Visualizer:
         """
         
         # Add metrics table
-        if 'metrics' in results:
-            html_content += """
+        if 'metrics' in results and results['metrics']:
+            # Get all scalar metric names from the first model
+            first_model = list(results['metrics'].keys())[0]
+            all_metric_names = list(results['metrics'][first_model].keys())
+            
+            # Filter to only scalar metrics
+            scalar_metrics = []
+            for metric_name in all_metric_names:
+                sample_value = results['metrics'][first_model][metric_name]
+                if isinstance(sample_value, (int, float)):
+                    scalar_metrics.append(metric_name)
+            
+            if scalar_metrics:
+                html_content += """
             <h2>Performance Metrics</h2>
             <table>
-                <tr><th>Model</th><th>PSNR</th><th>SSIM</th><th>MAE</th><th>MSE</th></tr>
-            """
-            
-            for model, metrics in results['metrics'].items():
-                if model != "vit":
+                <tr><th>Model</th>"""
+                
+                # Add header columns for each scalar metric
+                for metric in scalar_metrics:
+                    html_content += f"<th>{metric.replace('_', ' ').title()}</th>"
+                
+                html_content += "</tr>\n"
+                
+                # Find best performing model for each metric
+                best_models = {}
+                for metric in scalar_metrics:
+                    values = {model: results['metrics'][model][metric] 
+                             for model in results['metrics'].keys()}
+                    # Higher is better for these metrics
+                    if metric.lower() in ['psnr', 'ssim', 'accuracy', 'f1_score', 'precision', 'recall']:
+                        best_models[metric] = max(values, key=values.get)
+                    else:  # Lower is better for MAE, MSE, loss
+                        best_models[metric] = min(values, key=values.get)
+                
+                # Add rows for each model
+                for model, metrics in results['metrics'].items():
                     html_content += f"""
                     <tr>
-                        <td><strong>{model}</strong></td>
-                        <td>{metrics['PSNR']:.4f}</td>
-                        <td>{metrics['SSIM']:.4f}</td>
-                        <td>{metrics['MAE']:.4f}</td>
-                        <td>{metrics['MSE']:.4f}</td>
-                    </tr>
-                    """
-                else:
-                    html_content += f"""
-                    <tr>
-                        <td><strong>{model}</strong></td>
-                        <td><strong>{metrics['PSNR']:.4f}</strong></td>
-                        <td><strong>{metrics['SSIM']:.4f}</strong></td>
-                        <td><strong>{metrics['MAE']:.4f}</strong></td>
-                        <td><strong>{metrics['MSE']:.4f}</strong></td>
-                    </tr>
-                    """
-            
-            html_content += "</table>"
+                        <td><strong>{model}</strong></td>"""
+                    
+                    for metric in scalar_metrics:
+                        value = metrics[metric]
+                        # Highlight best performing model for this metric
+                        if model == best_models[metric]:
+                            html_content += f"<td class='best'>{value:.4f}</td>"
+                        else:
+                            html_content += f"<td>{value:.4f}</td>"
+                    
+                    html_content += "</tr>\n"
+                
+                html_content += "</table>"
         
         # Add training times
-        if 'training_times' in results:
+        if 'training_times' in results and results['training_times']:
+            # Find fastest model
+            fastest_model = min(results['training_times'], key=results['training_times'].get)
+            
             html_content += """
             <h2>Training Times</h2>
             <table>
@@ -240,20 +295,21 @@ class Visualizer:
             
             for model, time_seconds in results['training_times'].items():
                 time_minutes = time_seconds / 60
-                if model != "vit":
+                # Highlight fastest model
+                if model == fastest_model:
                     html_content += f"""
                     <tr>
                         <td><strong>{model}</strong></td>
-                        <td>{time_seconds:.2f}</td>
-                        <td>{time_minutes:.2f}</td>
+                        <td class='best'>{time_seconds:.2f}</td>
+                        <td class='best'>{time_minutes:.2f}</td>
                     </tr>
                     """
                 else:
                     html_content += f"""
                     <tr>
                         <td><strong>{model}</strong></td>
-                        <td><strong>{time_seconds:.2f}</strong></td>
-                        <td><strong>{time_minutes:.2f}</strong></td>
+                        <td>{time_seconds:.2f}</td>
+                        <td>{time_minutes:.2f}</td>
                     </tr>
                     """
             
