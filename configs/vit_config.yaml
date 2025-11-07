@@ -1,7 +1,8 @@
 # ViT-specific configuration
 patch_size: 16
-embed_dim: 384
-num_heads: 6
-num_layers: 12
+embed_dim: 768 # was 384
+num_heads: 12 # was 6
+num_layers: 12 # was 6
 mlp_ratio: 4.0
 dropout_rate: 0.1
+decoder_filters: [256, 128, 64, 32] # reduce to [128, 64, 32, 16] if training too slow

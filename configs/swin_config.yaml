@@ -1,7 +1,9 @@
 # Swin Transformer-specific configuration  
 patch_size: 4
 embed_dim: 96
-num_heads: 3
+# num_heads: 3
+num_heads_list: [3, 6, 12, 24] #
 window_size: 7
 depths: [2, 2, 6, 2]
 mlp_ratio: 4.0
+dropout_rate: 0.1 #

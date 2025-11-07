@@ -3,7 +3,7 @@ from tensorflow.keras import layers
 from .base_model import BaseTransformerModel
 
 class MultiHeadAttention(layers.Layer):
-    def __init__(self, embed_dim, num_heads):
+    def __init__(self, embed_dim, num_heads, dropout=0.1):
         super().__init__()
         self.embed_dim = int(embed_dim)
         self.num_heads = int(num_heads)
@@ -14,8 +14,9 @@ class MultiHeadAttention(layers.Layer):
         self.k_dense = layers.Dense(embed_dim)
         self.v_dense = layers.Dense(embed_dim)
         self.out_dense = layers.Dense(embed_dim)
+        self.dropout = layers.Dropout(dropout)
         
-    def call(self, x):
+    def call(self, x, training=False):
         batch_size, seq_len, embed_dim = tf.unstack(tf.shape(x))
         
         q = self.q_dense(x)
@@ -33,6 +34,7 @@ class MultiHeadAttention(layers.Layer):
         attention = tf.matmul(q, k, transpose_b=True)
         attention = attention / tf.math.sqrt(tf.cast(self.head_dim, tf.float32))
         attention = tf.nn.softmax(attention, axis=-1)
+        attention = self.dropout(attention, training=training)
         
         out = tf.matmul(attention, v)
         out = tf.transpose(out, [0, 2, 1, 3])
@@ -43,9 +45,11 @@ class MultiHeadAttention(layers.Layer):
 class TransformerBlock(layers.Layer):
     def __init__(self, embed_dim, num_heads, mlp_ratio, dropout_rate=0.1):
         super().__init__()
-        self.attention = MultiHeadAttention(embed_dim, num_heads)
-        self.norm1 = layers.LayerNormalization()
-        self.norm2 = layers.LayerNormalization()
+        self.attention = MultiHeadAttention(embed_dim, num_heads, dropout_rate)
+        self.norm1 = layers.LayerNormalization(epsilon=1e-6)
+        self.norm2 = layers.LayerNormalization(epsilon=1e-6)
+        self.dropout1 = layers.Dropout(dropout_rate)
+        self.dropout2 = layers.Dropout(dropout_rate)
         
         mlp_dim = int(embed_dim * mlp_ratio)
         self.mlp = tf.keras.Sequential([
@@ -58,12 +62,14 @@ class TransformerBlock(layers.Layer):
     def call(self, x, training=False):
         # Self-attention with residual connection
         norm_x = self.norm1(x)
-        attn_out = self.attention(norm_x)
+        attn_out = self.attention(norm_x, training=training)
+        attn_out = self.dropout1(attn_out, training=training)
         x = x + attn_out
         
         # MLP with residual connection
         norm_x = self.norm2(x)
         mlp_out = self.mlp(norm_x, training=training)
+        mlp_out = self.dropout2(mlp_out, training=training)
         x = x + mlp_out
         
         return x
@@ -84,91 +90,109 @@ class PatchExtractor(layers.Layer):
             padding="VALID",
         )
         patch_dims = patches.shape[-1]
-        img_size = images.shape[1]  # Assuming square images
+        img_size = images.shape[1]
         num_patches = (img_size // self.patch_size) ** 2
         patches = tf.reshape(patches, [batch_size, num_patches, patch_dims])
         return patches
 
-class PatchReconstructor(layers.Layer):
-    """Reconstruct image from patches"""
-    def __init__(self, patch_size, img_size):
+class PositionalEmbedding(layers.Layer):
+    """Learnable positional embeddings"""
+    def __init__(self, num_patches, embed_dim):
         super().__init__()
-        self.patch_size = patch_size
-        self.img_size = img_size
+        self.num_patches = num_patches
+        self.embed_dim = embed_dim
         
-    def call(self, patches):
-        batch_size = tf.shape(patches)[0]
-        h = w = self.img_size // self.patch_size
-        patches = tf.reshape(patches, [batch_size, h, w, self.patch_size, self.patch_size, 3])
-        patches = tf.transpose(patches, [0, 1, 3, 2, 4, 5])
-        images = tf.reshape(patches, [batch_size, self.img_size, self.img_size, 3])
-        return images
+    def build(self, input_shape):
+        self.pos_embed = self.add_weight(
+            shape=(1, self.num_patches, self.embed_dim),
+            initializer="random_normal",
+            trainable=True,
+            name="pos_embed"
+        )
+        
+    def call(self, x):
+        return x + self.pos_embed
+
+
+class DecoderBlock(layers.Layer):
+    """Decoder block with upsampling and refinement"""
+    def __init__(self, filters, kernel_size=3, dropout=0.1):
+        super().__init__()
+        self.upsample = layers.Conv2DTranspose(filters, kernel_size, strides=2, padding='same')
+        self.norm1 = layers.BatchNormalization()
+        self.conv1 = layers.Conv2D(filters, kernel_size, padding='same')
+        self.norm2 = layers.BatchNormalization()
+        self.conv2 = layers.Conv2D(filters, kernel_size, padding='same')
+        self.dropout = layers.Dropout(dropout)
+        
+    def call(self, x, training=False):
+        x = self.upsample(x)
+        x = self.norm1(x, training=training)
+        x = tf.nn.gelu(x)
+        
+        x = self.conv1(x)
+        x = self.norm2(x, training=training)
+        x = tf.nn.gelu(x)
+        x = self.dropout(x, training=training)
+        
+        x = self.conv2(x)
+        x = tf.nn.gelu(x)
+        
+        return x
+
 
 class ViTModel(BaseTransformerModel):
     def __init__(self, config):
         super().__init__(config)
         self.dropout_rate = config.get('dropout_rate', 0.1)
-        self.pooling_type = config.get('pooling_type', 'max')  # New parameter to determine pooling type
-        self.pooling_size = config.get('pooling_size', 2)      # Pooling size
-
+        self.decoder_filters = config.get('decoder_filters', [256, 128, 64, 32])
         
     def build_model(self):
         inputs = layers.Input(shape=(self.img_size, self.img_size, 3))
-        
-        if self.pooling_type == 'max':
-            x = layers.MaxPooling2D(pool_size=(self.pooling_size, self.pooling_size))(inputs)
-        elif self.pooling_type == 'average':
-            x = layers.AveragePooling2D(pool_size=(self.pooling_size, self.pooling_size))(inputs)
-        else:
-            x = inputs  # No pooling, use the input as is
 
-        # Convert to patches and embed using custom layers
-        patches = PatchExtractor(self.patch_size)(x)
-
-        # Convert to patches and embed using custom layers
+        # Patch embeddings (encoder)
+        # Extract patches
         patches = PatchExtractor(self.patch_size)(inputs)
         
-        # Linear projection
-        patch_embed = layers.Dense(self.embed_dim)(patches)
-
-        #patch_embed = layers.MaxPooling1D(pool_size=2)(patch_embed)  # Adjust pool size as needed
-
+        # Linear projection to embed_dim
+        patch_embed = layers.Dense(self.embed_dim, name='patch_embedding')(patches)
+        
+        # Add positional embeddings
         num_patches = (self.img_size // self.patch_size) ** 2
-        
-        # Add positional embeddings layer
-        class PositionalEmbedding(layers.Layer):
-            def __init__(self, num_patches, embed_dim):
-                super().__init__()
-                self.num_patches = num_patches
-                self.embed_dim = embed_dim
-                
-            def build(self, input_shape):
-                self.pos_embed = self.add_weight(
-                    shape=(1, self.num_patches, self.embed_dim),
-                    initializer="random_normal",
-                    name="pos_embed"
-                )
-                
-            def call(self, x):
-                return x + self.pos_embed
-        
         x = PositionalEmbedding(num_patches, self.embed_dim)(patch_embed)
         x = layers.Dropout(self.dropout_rate)(x)
-
-        # Transformer blocks
+        
+        # Transformer block
         for i in range(self.num_layers):
             x = TransformerBlock(
                 self.embed_dim, self.num_heads, self.mlp_ratio, self.dropout_rate
             )(x)
         
-        # Output projection to patch size
-        #patch_dim = self.patch_size * self.patch_size * 3
-        patch_dim = (self.patch_size) * (self.patch_size) * 3  # Adjusted for max pooling
-        x = layers.LayerNormalization()(x)
-        x = layers.Dense(patch_dim)(x)
+        x = layers.LayerNormalization(epsilon=1e-6)(x)
+
+        # Reshape to spatial to prepare for decoder
+        # Calculate spatial dimensions after patching
+        h = w = self.img_size // self.patch_size
         
-        # Reshape to image using custom layer
-        outputs = PatchReconstructor(self.patch_size, self.img_size)(x)  # Adjust dimensions for reconstruction #PatchReconstructor(self.patch_size, self.img_size)(x)
-        outputs = layers.Activation('sigmoid')(outputs)
+        # Reshape from (batch, num_patches, embed_dim) to (batch, h, w, embed_dim)
+        x = layers.Reshape((h, w, self.embed_dim))(x)
+        
+        # Decoder
+        # Initial conv to adjust channels
+        x = layers.Conv2D(self.decoder_filters[0], 3, padding='same', activation='gelu')(x)
+        x = layers.BatchNormalization()(x)
+        
+        # Progressive upsampling with decoder blocks
+        for i, filters in enumerate(self.decoder_filters):
+            x = DecoderBlock(filters, kernel_size=3, dropout=self.dropout_rate)(x)
+            print(f"After decoder block {i+1}: shape = (batch, {h * (2**(i+1))}, {h * (2**(i+1))}, {filters})")
+        
+        # Final refinement
+        x = layers.Conv2D(32, 3, padding='same', activation='gelu')(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Conv2D(16, 3, padding='same', activation='gelu')(x)
+        
+        # Output layer
+        outputs = layers.Conv2D(3, 1, padding='same', activation='sigmoid')(x)
         
         return tf.keras.Model(inputs, outputs, name="ViT_Reconstruction")
