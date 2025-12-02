@@ -77,7 +77,7 @@ To use:
 
 3. Run training:
 ```bash
-python main.py --config configs/base_config.yaml
+python main.py --config configs/base_config.yaml'''
 
 main.py loads the config, which passes it into the trainer (trainers/trainer.py). Data loader reads dataset paths from config, while model builders receive specific instructions from their configs.
 
