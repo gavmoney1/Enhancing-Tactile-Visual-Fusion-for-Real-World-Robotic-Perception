@@ -228,18 +228,25 @@ class YourModel(BaseTransformerModel):
 * Keep input/output signatures consistent with BaseTransformerModel
 * Use clear, descriptive variable/function names
 
-## Troubleshooting
+## FAQs
 
-### Out of Memory Errors
+### Question 1: Why am I getting "Out of Memory" errors?
+Due to 
 - Reduce `batch_size` in config
 - Enable `enable_mixed_precision: true`
 - Increase `gradient_accumulation_steps`
 - Reduce `img_size` or model dimensions
 
-### Slow Training
+### Question 2: Why is training so slow?
+The runtime mostly depends on your dataset size and the size of the models. If your program takes too long, try the tips below:
+
 - Increase `batch_size` if memory allows
 - Reduce `num_layers` or `embed_dim`
 - Use fewer `epochs` for initial testing
+- Use fewer layers for the models
 
-## License
-???
+  It is also highly recommended to configure your environment so that CUDA is enabled. This has been an issue for us, which we will discuss later. However, with CUDA, speeds can increase by nearly 10x.
+
+### Question 3: 
+
+
