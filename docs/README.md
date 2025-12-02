@@ -267,5 +267,5 @@ Things to include:
 The largest issue we faced was related to CUDA and TensorFlow / Keras. CUDA is no longer natively supported on TensorFlow. As a result, we were forced to use an Ubuntu environment on the University of Alabama's HPC server. It is possible to use CUDA on TensorFlow; however, it is extremely cumbersome to set up the environment. We would recommend using an Ubuntu environment over attempting to set up CUDA on Windows, as it is largely dependent on your own computer's specs.
 
 ## Demonstration Video
-
+[![Watch the video](https://img.youtube.com/vi/4GB55-2iXFM/0.jpg)](https://www.youtube.com/watch?v=4GB55-2iXFM)
 
