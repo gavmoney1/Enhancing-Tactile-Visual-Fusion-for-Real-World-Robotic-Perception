@@ -59,7 +59,7 @@ python main.py --config configs/my_config.yaml
 
 ## How to use each completed feature
 
-Feature 1: **Unified Training Configuration System**
+### Feature 1: **Unified Training Configuration System**
 All training settings are controlled through YAML configuration files
 under `configs/`. These include:
 - dataset paths
@@ -83,31 +83,31 @@ python main.py --config configs/base_config.yaml
 
 main.py loads the config, which passes it into the trainer (trainers/trainer.py). Data loader reads dataset paths from config, while model builders receive specific instructions from their configs.
 
-Feature 2: **Multi-Model Training Pipeline**
+### Feature 2: **Multi-Model Training Pipeline**
 
 Train one or more architectures through the same interface:
-#### Vision Transformer (ViT)
+##### Vision Transformer (ViT)
 - Standard ViT implementation for image reconstruction
 - Patch-based processing with positional embeddings
 - Multi-head self-attention with MLP blocks
 
-#### Swin Transformer
+##### Swin Transformer
 - Hierarchical vision transformer with shifted windows
 - Window-based attention for computational efficiency
 - Multi-stage architecture with patch merging
 
-#### DETR-style Model
+##### DETR-style Model
 - CNN backbone with transformer decoder
 - Object queries for patch reconstruction
 - Cross-attention between queries and image features
 
-#### MAE-UP Model
+##### MAE-UP Model
 - Masked Autoencoder with UNet-style Progressive decoder
 - Self-supervised pretraining with random mask patches
 - Progressive upsampling decoder for detailed reconstruction
 - Skip connections between encoder and decoder stages
 
-#### Convolutional Autoencoder
+##### Convolutional Autoencoder
 - Traditional convolutional architecture baseline
 - Encoder: Series of Conv2D + BatchNorm + ReLU blocks
 - Decoder: Transposed convolutions for upsampling
@@ -124,7 +124,7 @@ models come from models/*.py
 training loop executed in trainers/trainer.py  
 metrics computed via utils/metrics.py  
 
-Feature 3: **Evaluation & Metrics**
+### Feature 3: **Evaluation & Metrics**
 
 The framework evaluates models using:
 
@@ -136,7 +136,7 @@ The framework evaluates models using:
 trainers/trainer.py collects predictions and ground truths, which calls metric functions in utils/metrics.py.  
 Results found in each model’s output directory and in experiment summary HTML report.
 
-Feature 4: **Visualization & Experiment Report**
+### Feature 4: **Visualization & Experiment Report**
 Feature Description
 After training, the framework generates:
 - reconstruction image grids
@@ -147,7 +147,7 @@ After training, the framework generates:
 HTML summary report is found in experiments/ folder.  
 Explore each model's folder to see their visualizations.
 
-Feature 5: **Memory Optimization**
+### Feature 5: **Memory Optimization**
 
 For laptop training, the framework includes:
 - **Mixed Precision**: FP16 training to reduce memory usage
