@@ -39,17 +39,17 @@ training_testbed/
 0. Prerequisites
 To deploy this project in your own environment, you will need:
 
-- **Operating system**: Linux (recommended) or Windows with Python support
+- **Operating system**: Linux (recommended) or Windows with Python support  
 - **Python**: 3.10 (required)
 - **Git**: for cloning the repository
 - **Hardware**:
   - CPU-only is supported, but **GPU + CUDA** is strongly recommended for training performance
   - 
-Step 1: **Clone the repository**
+Step 1: **Clone the repository**  
 This can be done in many ways, but most easily by going to your command terminal and inputting:
 
--git clone https://github.com/gavmoney1/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception.git
-cd Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception
+**-git clone https://github.com/gavmoney1/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception.git
+cd Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception**  
 
 Step 2: **Install Dependencies**
 We recommend creating a virtual environment, although this is not required.
@@ -57,21 +57,21 @@ Run the following in your root directory
 ```bash
 pip install -r requirements.txt
 ```
-Step 3: **Configure your dataset**
+Step 3: **Configure your dataset**  
 Download your desired dataset, and move it into the repository
 Make sure that your dataset is a folder of images. Your dataset's parent folder should not have subfolders.
-Example dataset tree:
+Example dataset tree:  
 `my_dataset/
    img001.png
    img002.png
    img003.png
-`
+`  
 Next, configure utils/mask.py to point to your dataset, and run it. This creates masked images for your training
 
-Step 4: **Update Configuration**
-Update `configs/base_config.yaml` to include your image paths for both your original and masked datasets, and desired training parameters.
--data.orig_root: path to your original images
--data.mask_root: path to your masked images
+Step 4: **Update Configuration**  
+Update `configs/base_config.yaml` to include your image paths for both your original and masked datasets, and desired training parameters.  
+- data.orig_root: path to your original images  
+- data.mask_root: path to your masked images  
 
 Masked images must have the same name as their unmasked counterpart (and are created to have the same name in utils/mask.py)
 
