@@ -240,7 +240,8 @@ Dependencies can be found in requirements.txt
 ## FAQs
 
 #### Question 1: Why am I getting "Out of Memory" errors?
-This problem often arises due to dataset size. 
+This problem often arises due to dataset size.  
+
 - Reduce `batch_size` in config
 - Enable `enable_mixed_precision: true`
 - Increase `gradient_accumulation_steps`
