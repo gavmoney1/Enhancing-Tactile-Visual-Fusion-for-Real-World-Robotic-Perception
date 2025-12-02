@@ -268,6 +268,6 @@ The largest issue we faced was related to CUDA and TensorFlow / Keras. CUDA is n
 
 ## Demonstration Video
 
-[![Project Demonstration Video](https://img.youtube.com/vi/4GB55-2iXFM/0.jpg)](https://www.youtube.com/watch?v=4GB55-2iXFM)
+![Project Demonstration Video](https://img.youtube.com/vi/4GB55-2iXFM/0.jpg)
 
 
