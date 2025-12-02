@@ -72,120 +72,46 @@ class InferenceEngine:
         return config
 
     def _load_model(self):
-        """
-        Loads a model from .keras file. Since the models have custom keras object,
-        must import each object from the respective .py script otherwise the 
-        keras.models.load_model() function will not work properly causing a crash
-        """
-        if not os.path.exists(self.model_path):
-            raise FileNotFoundError(f"Model not found: {self.model_path}")
-
-        print(f"Loading model from {self.model_path}")
-
+        """Load the trained model with custom objects if needed."""
+        model_name = os.path.basename(os.path.dirname(self.model_path))
+        
+        # Import custom layers/objects based on model type
         custom_objects = {}
-
-        # Dynamically register custom objects depending on model name
-        if "conv_autoencoder" in self.model_name:
+        
+        if 'vit' in model_name.lower():
+            from models.vit_model import PatchEmbedding, TransformerBlock
+            custom_objects = {
+                'PatchEmbedding': PatchEmbedding,
+                'TransformerBlock': TransformerBlock
+            }
+            print(f"Registered custom layers for ViT model: {list(custom_objects.keys())}")
+        elif 'conv' in model_name.lower() or 'autoencoder' in model_name.lower():
             from models.conv_autoencoder_model import EncoderBlock, DecoderBlock
-            custom_objects.update({
-                "EncoderBlock": EncoderBlock,
-                "DecoderBlock": DecoderBlock,
-                # Handle prefixed layer names (if saved under a package) (robopercep)
-                "robopercep>EncoderBlock": EncoderBlock,
-                "robopercep>DecoderBlock": DecoderBlock
-            })
-
-        elif "detr" in self.model_name:
-            from models.detr_model import PositionalEncoding, QueryTiling, PatchesToImage
-            custom_objects.update({
-                "PositionalEncoding": PositionalEncoding,
-                "QueryTiling": QueryTiling,
-                "PatchesToImage": PatchesToImage,
-                # Handle prefixed layer names (if saved under a package) (robopercep)
-                "robopercep>PositionalEncoding": PositionalEncoding,
-                "robopercep>QueryTiling": QueryTiling,
-                "robopercep>PatchesToImage": PatchesToImage
-            })
-
-        elif "mae_up" in self.model_name:
-            from models.mae_up_model import PatchEmbed, MLP, TransformerBlock
-            custom_objects.update({
-                "PatchEmbed": PatchEmbed,
-                "MLP": MLP,
-                "TransformerBlock": TransformerBlock,
-                # Handle prefixed layer names (if saved under a package) (robopercep)
-                "robopercep>PatchEmbed": PatchEmbed,
-                "robopercep>MLP": MLP,
-                "robopercep>MAETransformerBlock": TransformerBlock,
-                "robopercep>TransformerBlock": TransformerBlock
-            })
-
-        elif "swin" in self.model_name:
-            from models.swin_model import (
-                WindowPartition,
-                WindowReverse,
-                WindowAttention,
-                CyclicShift,
-                CyclicShiftReverse,
-                SwinTransformerBlock
-            )
-            custom_objects.update({
-                "WindowPartition": WindowPartition,
-                "WindowReverse": WindowReverse,
-                "WindowAttention": WindowAttention,
-                "CyclicShift": CyclicShift,
-                "CyclicShiftReverse": CyclicShiftReverse,
-                "SwinTransformerBlock": SwinTransformerBlock,
-                # Handle prefixed layer names (if saved under a package) (robopercep)
-                "robopercep>WindowPartition": WindowPartition,
-                "robopercep>WindowReverse": WindowReverse,
-                "robopercep>WindowAttention": WindowAttention,
-                "robopercep>CyclicShift": CyclicShift,
-                "robopercep>CyclicShiftReverse": CyclicShiftReverse,
-                "robopercep>SwinTransformerBlock": SwinTransformerBlock
-            })
-
-        elif "vit" in self.model_name:
-            from models.vit_model import (
-                MultiHeadAttention,
-                TransformerBlock,
-                PatchExtractor,
-                PatchReconstructor
-            )
-
-            # Dummy placeholder for PositionalEmbedding (inner class)
-            class PositionalEmbedding(tf.keras.layers.Layer):
-                def __init__(self, *args, **kwargs):
-                    super().__init__()
-                def call(self, x):
-                    return x
-
-            custom_objects.update({
-                "MultiHeadAttention": MultiHeadAttention,
-                "TransformerBlock": TransformerBlock,
-                "PatchExtractor": PatchExtractor,
-                "PatchReconstructor": PatchReconstructor,
-                "PositionalEmbedding": PositionalEmbedding,  # inner class placeholder
-                # Handle prefixed layer names (if saved under a package) (robopercep)
-                "robopercep>MultiHeadAttention": MultiHeadAttention,
-                "robopercep>TransformerBlock": TransformerBlock,
-                "robopercep>PatchExtractor": PatchExtractor,
-                "robopercep>PatchReconstructor": PatchReconstructor,
-                "robopercep>PositionalEmbedding": PositionalEmbedding,
-                "robopercep>ViTTransformerBlock": TransformerBlock
-            })
-
+            custom_objects = {
+                'EncoderBlock': EncoderBlock,
+                'DecoderBlock': DecoderBlock
+            }
+            print(f"Registered custom layers for Conv Autoencoder: {list(custom_objects.keys())}")
         else:
-            print(f"WARNING: No custom layers registered for {self.model_name}. Attempting to load normally...")
-
-        model = tf.keras.models.load_model(
-            self.model_path,
-            compile=False,
-            custom_objects=custom_objects,
-            safe_mode=False
-        )
-        print("Model loaded successfully!")
-        return model
+            print(f"WARNING: No custom layers registered for {model_name}. Attempting to load normally...")
+        
+        try:
+            if custom_objects:
+                model = tf.keras.models.load_model(
+                    self.model_path,
+                    custom_objects=custom_objects,
+                    compile=False
+                )
+            else:
+                model = tf.keras.models.load_model(
+                    self.model_path,
+                    compile=False
+                )
+            print(f"Model loaded successfully from {self.model_path}")
+            return model
+        except Exception as e:
+            print(f"Error loading model: {str(e)}")
+            raise
 
     
     def _preprocess_image(self, image_path: str) -> np.ndarray:

@@ -5,15 +5,15 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 import tensorflow as tf
 gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        print(f"Configured {len(gpus)} GPU(s) for memory growth")
-    except RuntimeError as e:
-        print(f"GPU memory configuration error: {e}")
-else:
-    print("No GPU found, using CPU")
+# if gpus:
+#     try:
+#         for gpu in gpus:
+#             tf.config.experimental.set_memory_growth(gpu, True)
+#         print(f"Configured {len(gpus)} GPU(s) for memory growth")
+#     except RuntimeError as e:
+#         print(f"GPU memory configuration error: {e}")
+# else:
+#     print("No GPU found, using CPU")
 import sys
 import copy
 import yaml

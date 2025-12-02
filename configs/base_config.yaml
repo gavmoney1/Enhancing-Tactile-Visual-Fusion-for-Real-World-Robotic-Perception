@@ -1,16 +1,16 @@
 # Base configuration for all models
 data:
 
-  orig_root: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/shapes"
-  mask_root: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/shapes"
-  labels_path: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/labels.txt" # TODO: add label support, not currently implemented
-  out_dir: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/test123"
+  orig_root: "/bighome/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/shapes"
+  mask_root: "/bighome/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/shapes"
+  labels_path: "/bighome/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/testdata/labels.txt" # TODO: add label support, not currently implemented
+  out_dir: "/bighome/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/demo_test"
 
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
 training:
-  batch_size: 8  # Reduced for laptop
+  batch_size: 32  # Reduced for laptop
   epochs: 1
   val_split: 0.10
   test_split: 0.20 # TODO: these vals currently only affect metric report
@@ -24,7 +24,7 @@ optimization:
 memory:
   enable_mixed_precision: false
   gradient_accumulation_steps: 1
-  max_memory_gb: 8  # Adjust based on your laptop
+  max_memory_gb: 64  # Adjust based on your laptop
   
 models_to_train:
   - "mae_up"
