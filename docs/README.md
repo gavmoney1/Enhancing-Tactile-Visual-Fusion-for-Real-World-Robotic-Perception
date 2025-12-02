@@ -71,6 +71,7 @@ under `configs/`. These include:
 
 To use:
 1. Open `configs/base_config.yaml`
+  
 2. Edit:
    - training parameters (epochs, lr, batch size)
    - list of models to train
@@ -85,28 +86,28 @@ main.py loads the config, which passes it into the trainer (trainers/trainer.py)
 2. **Multi-Model Training Pipeline**
 
 Train one or more architectures through the same interface:
-### Vision Transformer (ViT)
+#### Vision Transformer (ViT)
 - Standard ViT implementation for image reconstruction
 - Patch-based processing with positional embeddings
 - Multi-head self-attention with MLP blocks
 
-### Swin Transformer
+#### Swin Transformer
 - Hierarchical vision transformer with shifted windows
 - Window-based attention for computational efficiency
 - Multi-stage architecture with patch merging
 
-### DETR-style Model
+#### DETR-style Model
 - CNN backbone with transformer decoder
 - Object queries for patch reconstruction
 - Cross-attention between queries and image features
 
-### MAE-UP Model
+#### MAE-UP Model
 - Masked Autoencoder with UNet-style Progressive decoder
 - Self-supervised pretraining with random mask patches
 - Progressive upsampling decoder for detailed reconstruction
 - Skip connections between encoder and decoder stages
 
-### Convolutional Autoencoder
+#### Convolutional Autoencoder
 - Traditional convolutional architecture baseline
 - Encoder: Series of Conv2D + BatchNorm + ReLU blocks
 - Decoder: Transposed convolutions for upsampling
@@ -114,9 +115,9 @@ Train one or more architectures through the same interface:
 
 
 Produces:
-trained model checkpoints
-experiment folders for each model
-training logs, reconstructions, metrics
+-trained model checkpoints
+-experiment folders for each model
+-training logs, reconstructions, metrics
 
 data comes from datasets/data_loader.py
 models come from models/*.py
