@@ -3,13 +3,37 @@
 
 A modular framework for training and comparing different transformer architectures on masked image reconstruction tasks.
 
-## Features
 
-- **Multiple Transformer Architectures**: ViT, Swin Transformer, DETR, MAE Up, Conventional Autoencoder
-- **Memory Management**: Optimized for laptop training with memory monitoring
-- **Comprehensive Evaluation**: PSNR, SSIM, MAE, MSE metrics
-- **Visual Comparisons**: Automated generation of prediction visualizations !TODO!
-- **Modular Design**: Easy to add new models and configurations
+## Project Structure
+
+```
+training_testbed/
+├── configs/                 # Configuration files
+│   ├── base_config.yaml    # Main configuration
+│   ├── vit_config.yaml     # ViT-specific settings
+│   ├── swin_config.yaml    # Swin-specific settings
+│   ├── detr_config.yaml    # DETR-specific settings
+│   ├── mae_up_config.yaml  # MAE-UP-specific settings
+│   └── conv_ae_config.yaml # ConvAE-specific settings
+├── datasets/               # Data loading utilities
+│   └── data_loader.py      # Dataset creation and preprocessing
+├── models/                 # Model implementations
+│   ├── base_model.py       # Abstract base class
+│   ├── vit_model.py        # Vision Transformer
+│   ├── swin_model.py       # Swin Transformer
+│   ├── detr_model.py       # DETR-style model
+│   ├── mae_up_model.py     # Masked Autoencoder with UNet-style decoder
+│   └── conv_ae_model.py    # Convolutional Autoencoder
+├── trainers/               # Training logic
+│   └── trainer.py          # Model trainer with callbacks
+├── utils/                  # Utility functions
+│   ├── metrics.py          # Evaluation metrics
+│   ├── visualization.py    # Plotting and visualization
+│   └── memory_utils.py     # Memory management
+├── main.py                 # Main training script
+├── requirements.txt        # Python dependencies
+└── README.md               # This file
+```
 
 ## How to install software
 
@@ -59,7 +83,7 @@ python main.py --config configs/my_config.yaml
 
 ## How to use each completed feature
 
-### Feature 1: **Unified Training Configuration System**
+#### Feature 1: **Unified Training Configuration System**
 All training settings are controlled through YAML configuration files
 under `configs/`. These include:
 - dataset paths
@@ -83,7 +107,7 @@ python main.py --config configs/base_config.yaml
 
 main.py loads the config, which passes it into the trainer (trainers/trainer.py). Data loader reads dataset paths from config, while model builders receive specific instructions from their configs.
 
-### Feature 2: **Multi-Model Training Pipeline**
+#### Feature 2: **Multi-Model Training Pipeline**
 
 Train one or more architectures through the same interface:
 ##### Vision Transformer (ViT)
@@ -124,7 +148,7 @@ models come from models/*.py
 training loop executed in trainers/trainer.py  
 metrics computed via utils/metrics.py  
 
-### Feature 3: **Evaluation & Metrics**
+#### Feature 3: **Evaluation & Metrics**
 
 The framework evaluates models using:
 
@@ -136,18 +160,19 @@ The framework evaluates models using:
 trainers/trainer.py collects predictions and ground truths, which calls metric functions in utils/metrics.py.  
 Results found in each model’s output directory and in experiment summary HTML report.
 
-### Feature 4: **Visualization & Experiment Report**
+#### Feature 4: **Visualization & Experiment Report**
 Feature Description
 After training, the framework generates:
 - reconstruction image grids
 - comparison charts
 - training history plots
+- Keras file of best performing model
 - an HTML summary report with all results
 
 HTML summary report is found in experiments/ folder.  
 Explore each model's folder to see their visualizations.
 
-### Feature 5: **Memory Optimization**
+#### Feature 5: **Memory Optimization**
 
 For laptop training, the framework includes:
 - **Mixed Precision**: FP16 training to reduce memory usage
@@ -157,13 +182,20 @@ For laptop training, the framework includes:
 - **Dynamic Memory Growth**: GPU memory allocation as needed
 
 These options can be enabled in configs/base_config.yaml:
--enable_mixed_precision: true
--gradient_accumulation_steps: 4
--sequential_training: true
 
+- enable_mixed_precision: true
+- gradient_accumulation_steps: 4
+- sequential_training: true
 
+#### Feature 6: Inference Engine
+Training a model is a lengthy process, and often we just want to get results without training a brand new model  
+To resolve this, we use the downloaded, pretrained Keras file of each model and run it through an inference engine to get quick visualizations
 
-To add a new transformer architecture:
+The inference engine is found in `inference_engine.py`
+
+## How to modify/extend software
+
+#### To add a new transformer architecture:
 
 1. Create `models/your_model.py` inheriting from `BaseTransformerModel`
 2. Implement the `build_model()` method
@@ -182,38 +214,19 @@ class YourModel(BaseTransformerModel):
         # Implement your model architecture
         pass
 ```
+#### Languages, Compiler, Build Management:
 
-## Project Structure
+- **Language:** Python 3.10
+- **ML Framework:** TensorFlow / Keras
+- **Configuration:** YAML files in configs/
+- **Build / dependency management:** pip with `requirements.txt`. That's it!
 
-```
-training_testbed/
-├── configs/                 # Configuration files
-│   ├── base_config.yaml    # Main configuration
-│   ├── vit_config.yaml     # ViT-specific settings
-│   ├── swin_config.yaml    # Swin-specific settings
-│   ├── detr_config.yaml    # DETR-specific settings
-│   ├── mae_up_config.yaml  # MAE-UP-specific settings
-│   └── conv_ae_config.yaml # ConvAE-specific settings
-├── datasets/               # Data loading utilities
-│   └── data_loader.py      # Dataset creation and preprocessing
-├── models/                 # Model implementations
-│   ├── base_model.py       # Abstract base class
-│   ├── vit_model.py        # Vision Transformer
-│   ├── swin_model.py       # Swin Transformer
-│   ├── detr_model.py       # DETR-style model
-│   ├── mae_up_model.py     # Masked Autoencoder with UNet-style decoder
-│   └── conv_ae_model.py    # Convolutional Autoencoder
-├── trainers/               # Training logic
-│   └── trainer.py          # Model trainer with callbacks
-├── utils/                  # Utility functions
-│   ├── metrics.py          # Evaluation metrics
-│   ├── visualization.py    # Plotting and visualization
-│   └── memory_utils.py     # Memory management
-├── main.py                 # Main training script
-├── requirements.txt        # Python dependencies
-└── README.md               # This file
-```
+#### Stylistic Expectations
 
+* `*_model.py` for model files
+* `*_config.yaml` for configs
+* Keep input/output signatures consistent with BaseTransformerModel
+* Use clear, descriptive variable/function names
 
 ## Troubleshooting
 
