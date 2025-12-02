@@ -115,37 +115,37 @@ Train one or more architectures through the same interface:
 
 
 Produces:
--trained model checkpoints
--experiment folders for each model
--training logs, reconstructions, metrics
+- trained model checkpoints
+- experiment folders for each model
+- training logs, reconstructions, metrics
 
-data comes from datasets/data_loader.py
-models come from models/*.py
-training loop executed in trainers/trainer.py
-metrics computed via utils/metrics.py
+data comes from datasets/data_loader.py  
+models come from models/*.py  
+training loop executed in trainers/trainer.py  
+metrics computed via utils/metrics.py  
 
 3. **Evaluation & Metrics**
 
 The framework evaluates models using:
+
 - **PSNR**: Peak Signal-to-Noise Ratio (higher is better)
 - **SSIM**: Structural Similarity Index (higher is better) 
 - **MAE**: Mean Absolute Error (lower is better)
 - **MSE**: Mean Squared Error (lower is better)
 
-trainers/trainer.py collects predictions and ground truths, which calls metric functions in utils/metrics.py
-Results found in each model’s output directory and in experiment summary HTML report
+trainers/trainer.py collects predictions and ground truths, which calls metric functions in utils/metrics.py.  
+Results found in each model’s output directory and in experiment summary HTML report.
 
 4. **Visualization & Experiment Report**
 Feature Description
 After training, the framework generates:
--reconstruction image grids
--comparison charts
--training history plots
--an HTML summary report with all results
+- reconstruction image grids
+- comparison charts
+- training history plots
+- an HTML summary report with all results
 
-HTML summary report is found in experiments/ folder.
+HTML summary report is found in experiments/ folder.  
 Explore each model's folder to see their visualizations.
-
 
 5. **Memory Optimization**
 
