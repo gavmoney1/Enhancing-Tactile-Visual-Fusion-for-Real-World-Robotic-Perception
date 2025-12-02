@@ -16,13 +16,13 @@ decoder:
 optimization: # overrides
   learning_rate: 3e-4
   weight_decay: 0.05
-  warmup_steps: 2000
+  warmup_steps: 100
   beta1: 0.9
   beta2: 0.95
 
 training:
   # epochs: 100
-  batch_size: 16
+  batch_size: 8
   seed: 42
   mask_ratio: 0.9  # Center mask = 90% masked, 10% visible
 

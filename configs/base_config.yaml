@@ -1,17 +1,17 @@
 # Base configuration for all models
 data:
 
-  orig_root: "/your/unmasked/images/dir/here"
-  mask_root: "/your/masked/images/dir/here"
-  labels_path: "/your/labels.csv/here" # TODO: add label support, not currently implemented
-  out_dir: "/your/output/dir/here"
+  orig_root: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/shapes"
+  mask_root: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/shapes"
+  labels_path: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/datasets/testdata/labels.txt" # TODO: add label support, not currently implemented
+  out_dir: "/home/gcmoney/Enhancing-Tactile-Visual-Fusion-for-Real-World-Robotic-Perception/test123"
 
   img_size: 224
   mask_ratio: 0.9  # 90% masked
   
 training:
   batch_size: 8  # Reduced for laptop
-  epochs: 50
+  epochs: 1
   val_split: 0.10
   test_split: 0.20 # TODO: these vals currently only affect metric report
   seed: 42
@@ -22,8 +22,8 @@ optimization:
   warmup_steps: 1000
   
 memory:
-  enable_mixed_precision: true
-  gradient_accumulation_steps: 2
+  enable_mixed_precision: false
+  gradient_accumulation_steps: 1
   max_memory_gb: 8  # Adjust based on your laptop
   
 models_to_train:
@@ -35,4 +35,4 @@ models_to_train:
   
 evaluation:
   save_predictions: true
-  num_visualization_samples: 4
+  num_visualization_samples: 1

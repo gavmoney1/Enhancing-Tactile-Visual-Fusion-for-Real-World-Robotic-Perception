@@ -1,9 +1,6 @@
 import os
-import re
 import tensorflow as tf
-from typing import List, Tuple, Dict
-from collections import defaultdict
-import random
+from typing import List, Tuple
 
 class DataLoader:
     def __init__(self, config):
@@ -29,75 +26,26 @@ class DataLoader:
         orig.set_shape([self.img_size, self.img_size, 3])
         mask.set_shape([self.img_size, self.img_size, 3])
         return mask, orig
-    
-    def _extract_video_id(self, fname: str) -> str:
-        """
-        Extract video identifier from filename or subdirectory.
-        Handles:
-            (1) matched_frames/20220503_100937/0000001.jpg -> 20220503_100937
-            or 
-            (2) matched_frames/20220503_100937_0000001.jpg -> 20220503_100937
 
-            Raises:
-                ValueError: if a valid video ID cannot be extracted
-        """
-
-        # normalize slashes
-        fname = fname.replace("\\", "/")
-
-        # For case 1: Search for the 8 pattern digits (date) + _ + 6 digits (time)
-        match = re.search(r"\d{8}_\d{6}", fname)
-        if match:
-            return match.group(0)
-
-        # For case 2: use filename minus last underscore
-        base_name = os.path.basename(fname)
-        if "_" in base_name:
-            return "_".join(base_name.split("_")[:-1])
-        
-        # Path does not match expected patterns
-        raise ValueError(f"Invalid path format for extracting video ID: {fname}")
-
-    def _get_matching_files(self) -> Dict[str, List[str]]:
-        """
-        Match files between orig_root and mask_root, grouped by video ID.
-        """
-        matched_files = defaultdict(list)
-
-        for root, _, files in os.walk(self.orig_root):
-            for fname in files:
-                if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
-                    continue
-                rel_path = os.path.relpath(os.path.join(root, fname), self.orig_root)
-                video_id = self._extract_video_id(rel_path)
-                mask_path = os.path.join(self.mask_root, rel_path)
-                if os.path.exists(mask_path):
-                    matched_files[video_id].append(rel_path)
-
+    def _get_matching_files(self) -> List[str]:
+        orig_files = set(os.listdir(self.orig_root))
+        mask_files = set(os.listdir(self.mask_root))
+        matched_files = list(orig_files & mask_files)
+        matched_files.sort()
         return matched_files
 
-    def create_datasets(self, test_split=0.2, val_split=0.1) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-        grouped_files = self._get_matching_files()
-        video_ids = list(grouped_files.keys())
-        video_ids.sort()
-        random.seed(self.seed)
-        random.shuffle(video_ids)
+    def create_datasets(self, test_split=0.1, val_split=0.1) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+        paths = self._get_matching_files()
+        tf.random.set_seed(self.seed)
+        paths = tf.random.shuffle(paths)
 
-        n = len(video_ids)
+        n = len(paths)
         n_test = int(test_split * n)
         n_val = int(val_split * n)
 
-        test_videos = video_ids[:n_test]
-        val_videos = video_ids[n_test:n_test+n_val]
-        train_videos = video_ids[n_test+n_val:]
-
-        # Turn back into file paths
-        train_paths = [p for vid in train_videos for p in grouped_files[vid]]
-        val_paths = [p for vid in val_videos for p in grouped_files[vid]]
-        test_paths = [p for vid in test_videos for p in grouped_files[vid]]
-
-        print(f"Total videos: {n}")
-        print(f"Train videos: {len(train_videos)}, Val videos: {len(val_videos)}, Test videos: {len(test_videos)}")
+        test_paths = paths[:n_test]
+        val_paths = paths[n_test:n_test+n_val]
+        train_paths = paths[n_test+n_val:]
 
         train_ds = self._make_dataset(train_paths, shuffle=True)
         val_ds = self._make_dataset(val_paths)

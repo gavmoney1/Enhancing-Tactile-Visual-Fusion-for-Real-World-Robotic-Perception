@@ -195,7 +195,7 @@ class PatchExpanding(layers.Layer):
 
 class SwinModel(BaseTransformerModel):
     def __init__(self, config):
-        super().__init__()
+        super().__init__(config)
         self.img_size = config.get('img_size', 224)
         self.patch_size = config.get('patch_size', 4)
         self.embed_dim = config.get('embed_dim', 96)
